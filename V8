@@ -1,0 +1,712 @@
+-- Mod made by @Abs Studio :)
+-- Hoàng Hub Kaitun Siêu Cấp CHUẨN VIP (Không Rút Gọn, 5 Phần Hoàn Chỉnh)
+-- PHẦN 1: Hệ thống cấu hình, Đồ họa mượt mà, Giao diện Mèo + Godhuman Dot Indicator
+
+getgenv().Kaitun = true
+getgenv().TweenSpeed = 300
+getgenv().AutoFruit = true
+getgenv().AutoRandomFruit = true
+getgenv().AutoAttack = true
+getgenv().BringMonster = true
+getgenv().AutoGodHuman = true
+getgenv().AutoStats = true
+
+-- Các biến quản lý cốt lõi
+getgenv().CurrentTarget = nil
+getgenv().CurrentTask = ""
+getgenv().TaskStartTime = tick()
+getgenv().GodhumanWeapon = "Black Leg"
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local VirtualUser = game:GetService("VirtualUser")
+
+local Player = Players.LocalPlayer
+local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+
+-- =========================================
+-- TỐI ƯU HÓA HỆ THỐNG (FIX LAG TUYỆT ĐỐI)
+-- =========================================
+local function FixLagKaitun()
+    pcall(function()
+        for _, v in pairs(workspace:GetDescendants()) do
+            if v:IsA("BasePart") and not v:IsA("MeshPart") then
+                v.Material = Enum.Material.SmoothPlastic
+                v.Reflectance = 0
+            elseif v:IsA("Texture") or v:IsA("Decal") then
+                v:Destroy()
+            elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then
+                v.Enabled = false
+            end
+        end
+        local lighting = game:GetService("Lighting")
+        lighting.GlobalShadows = false
+        lighting.FogEnd = 9e9
+        if lighting:FindFirstChild("Blur") then lighting.Blur:Destroy() end
+        if lighting:FindFirstChild("Atmosphere") then lighting.Atmosphere:Destroy() end
+    end)
+end
+task.spawn(FixLagKaitun)
+
+-- TỰ ĐỘNG CHỌN PHE HẢI TẶC
+task.spawn(function()
+    if Player.Team == nil or tostring(Player.Team) == "Choosing" then
+        CommF:InvokeServer("SetTeam", "Pirates")
+        task.wait(1)
+    end
+end)
+
+-- AUTO CỘNG ĐIỂM CHỈ SỐ (STATS)
+task.spawn(function()
+    while task.wait(0.5) do
+        if getgenv().AutoStats then
+            pcall(function()
+                local points = Player.Data.Points.Value
+                if points > 0 then
+                    local meleeLevel = Player.Data.Stats.Melee.Level.Value
+                    if meleeLevel < 2550 then 
+                        CommF:InvokeServer("AddPoint", "Melee", points)
+                    else 
+                        CommF:InvokeServer("AddPoint", "Defense", points) 
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- =========================================
+-- GIAO DIỆN HOÀNG HUB CÓ NỀN MÈO & PHÂN TÍCH TRẠNG THÁI
+-- =========================================
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local CatImage = Instance.new("ImageLabel")
+local Title = Instance.new("TextLabel")
+local LevelText = Instance.new("TextLabel")
+local GodHumanText = Instance.new("TextLabel")
+local GodHumanDot = Instance.new("Frame")
+local SwordStatus = Instance.new("TextLabel")
+local UICorner1 = Instance.new("UICorner")
+local UICorner2 = Instance.new("UICorner")
+
+ScreenGui.Name = "HoangHubKaitunV3"
+ScreenGui.Parent = game.CoreGui
+
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+MainFrame.Position = UDim2.new(0.5, -125, 0, 20)
+MainFrame.Size = UDim2.new(0, 260, 0, 140)
+MainFrame.Active = true
+MainFrame.Draggable = true
+UICorner1.CornerRadius = UDim.new(0, 10)
+UICorner1.Parent = MainFrame
+
+CatImage.Parent = MainFrame
+CatImage.Size = UDim2.new(1, 0, 1, 0)
+CatImage.BackgroundTransparency = 1
+CatImage.Image = "rbxassetid://97296068728836"
+CatImage.ImageTransparency = 0.5 
+CatImage.ScaleType = Enum.ScaleType.Crop
+UICorner1:Clone().Parent = CatImage
+
+Title.Parent = MainFrame
+Title.BackgroundTransparency = 1
+Title.Size = UDim2.new(1, 0, 0.25, 0)
+Title.Font = Enum.Font.GothamBold
+Title.Text = "HOÀNG HUB KAITUN"
+Title.TextColor3 = Color3.fromRGB(255, 215, 0)
+Title.TextSize = 16
+
+LevelText.Parent = MainFrame
+LevelText.BackgroundTransparency = 1
+LevelText.Position = UDim2.new(0, 10, 0.25, 0)
+LevelText.Size = UDim2.new(0.9, 0, 0.25, 0)
+LevelText.Font = Enum.Font.GothamSemibold
+LevelText.Text = "Đang quét dữ liệu cấp độ..."
+LevelText.TextColor3 = Color3.fromRGB(255, 255, 255)
+LevelText.TextSize = 12
+LevelText.TextXAlignment = Enum.TextXAlignment.Left
+
+GodHumanText.Parent = MainFrame
+GodHumanText.BackgroundTransparency = 1
+GodHumanText.Position = UDim2.new(0, 10, 0.5, 0)
+GodHumanText.Size = UDim2.new(0.7, 0, 0.25, 0)
+GodHumanText.Font = Enum.Font.GothamSemibold
+GodHumanText.Text = "Trạng thái Godhuman:"
+GodHumanText.TextColor3 = Color3.fromRGB(200, 200, 200)
+GodHumanText.TextSize = 12
+GodHumanText.TextXAlignment = Enum.TextXAlignment.Left
+
+GodHumanDot.Parent = MainFrame
+GodHumanDot.BackgroundColor3 = Color3.fromRGB(255, 0, 0) 
+GodHumanDot.Position = UDim2.new(0.8, 0, 0.55, 0)
+GodHumanDot.Size = UDim2.new(0, 12, 0, 12)
+UICorner2.CornerRadius = UDim.new(1, 0)
+UICorner2.Parent = GodHumanDot
+
+SwordStatus.Parent = MainFrame
+SwordStatus.BackgroundTransparency = 1
+SwordStatus.Position = UDim2.new(0, 10, 0.75, 0)
+SwordStatus.Size = UDim2.new(0.9, 0, 0.25, 0)
+SwordStatus.Font = Enum.Font.GothamSemibold
+SwordStatus.Text = "Yama: Đang quét | Tushita: Đang quét"
+SwordStatus.TextColor3 = Color3.fromRGB(200, 255, 200)
+SwordStatus.TextSize = 12
+SwordStatus.TextXAlignment = Enum.TextXAlignment.Left
+-- PHẦN 2: Hệ thống dịch chuyển mượt mà, Neo giữ vị trí chống văng & Engine Fast Attack Siêu Tốc
+
+local function GetHRP()
+    if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then return Player.Character.HumanoidRootPart end
+    return nil
+end
+
+local function HoldPosition(pos)
+    local hrp = GetHRP()
+    if hrp then
+        if not hrp:FindFirstChild("HoldBV") then
+            local bv = Instance.new("BodyVelocity")
+            bv.Name = "HoldBV"
+            bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+            bv.Velocity = Vector3.new(0, 0, 0)
+            bv.Parent = hrp
+        end
+        hrp.CFrame = pos
+    end
+end
+
+local function ClearHold()
+    local hrp = GetHRP()
+    if hrp and hrp:FindFirstChild("HoldBV") then hrp.HoldBV:Destroy() end
+end
+
+local function topos(TargetCFrame)
+    local hrp = GetHRP()
+    if not hrp then return end
+    local distance = (hrp.Position - TargetCFrame.Position).Magnitude
+    if distance < 10 then 
+        HoldPosition(TargetCFrame)
+        return 
+    end
+    ClearHold()
+    local time = distance / getgenv().TweenSpeed
+    local tweenInfo = TweenInfo.new(time, Enum.EasingStyle.Linear)
+    local tween = TweenService:Create(hrp, tweenInfo, {CFrame = TargetCFrame})
+    
+    if not hrp:FindFirstChild("BodyClip") then
+        local bv = Instance.new("BodyVelocity")
+        bv.Name = "BodyClip"
+        bv.MaxForce = Vector3.new(100000, 100000, 100000)
+        bv.Velocity = Vector3.new(0, 0, 0)
+        bv.Parent = hrp
+    end
+    
+    for _, v in pairs(Player.Character:GetDescendants()) do
+        if v:IsA("BasePart") then v.CanCollide = false end
+    end
+    
+    tween:Play()
+    tween.Completed:Wait()
+    if hrp:FindFirstChild("BodyClip") then hrp.BodyClip:Destroy() end
+    HoldPosition(TargetCFrame)
+end
+
+-- =========================================
+-- ENGINE PHÁT SÁT THƯƠNG SIÊU TỐC (FAST ATTACK BYPASS NET)
+-- =========================================
+local v1 = next
+local v2 = {game.ReplicatedStorage.Util, game.ReplicatedStorage.Common, game.ReplicatedStorage.Remotes, game.ReplicatedStorage.Assets, game.ReplicatedStorage.FX}
+local v3 = nil; local u4 = nil; local u5 = nil
+
+while true do
+    local v6
+    v3, v6 = v1(v2, v3)
+    if v3 == nil then break end
+    local v7 = next; local v8, v9 = v6:GetChildren()
+    while true do
+        local v10
+        v9, v10 = v7(v8, v9)
+        if v9 == nil then break end
+        if v10:IsA('RemoteEvent') and v10:GetAttribute('Id') then u5 = v10:GetAttribute('Id') u4 = v10 end
+    end
+    v6.ChildAdded:Connect(function(p11)
+        if p11:IsA('RemoteEvent') and p11:GetAttribute('Id') then u5 = p11:GetAttribute('Id') u4 = p11 end
+    end)
+end
+
+task.spawn(function()
+    while task.wait(0.0001) do
+        if getgenv().AutoAttack then
+            local _Character = game.Players.LocalPlayer.Character
+            local v13 = _Character and _Character:FindFirstChild('HumanoidRootPart')
+            local v14, v15, v16 = ipairs({workspace.Enemies, workspace.Characters})
+            local u17 = {}
+            while true do
+                local v18
+                v16, v18 = v14(v15, v16)
+                if v16 == nil then break end
+                local v19, v20, v21 = ipairs(v18 and v18:GetChildren() or {})
+                while true do
+                    local v21_2, v22 = v19(v20, v21)
+                    v21 = v21_2
+                    if v21_2 == nil then break end
+                    local _HumanoidRootPart = v22:FindFirstChild('HumanoidRootPart')
+                    local _Humanoid = v22:FindFirstChild('Humanoid')
+                    if v22 ~= _Character and _HumanoidRootPart and _Humanoid and _Humanoid.Health > 0 and v13 and (_HumanoidRootPart.Position - v13.Position).Magnitude <= 60 then
+                        local v25, v26, v27 = ipairs(v22:GetChildren())
+                        while true do
+                            local v28
+                            v27, v28 = v25(v26, v27)
+                            if v27 == nil then break end
+                            if v28:IsA('BasePart') and (_HumanoidRootPart.Position - v13.Position).Magnitude <= 60 then u17[#u17 + 1] = {v22, v28} end
+                        end
+                    end
+                end
+            end
+            local _Tool = _Character and _Character:FindFirstChildOfClass('Tool')
+            if #u17 > 0 and _Tool and (_Tool:GetAttribute('WeaponType') == 'Melee' or _Tool:GetAttribute('WeaponType') == 'Sword') then
+                pcall(function()
+                    require(game.ReplicatedStorage.Modules.Net):RemoteEvent('RegisterHit', true)
+                    game.ReplicatedStorage.Modules.Net['RE/RegisterAttack']:FireServer()
+                    local _Head = u17[1][1]:FindFirstChild('Head')
+                    if _Head then
+                        game.ReplicatedStorage.Modules.Net['RE/RegisterHit']:FireServer(_Head, u17, {}, tostring(game.Players.LocalPlayer.UserId):sub(2, 4) .. tostring(coroutine.running()):sub(11, 15))
+                        cloneref(u4):FireServer(string.gsub('RE/RegisterHit', '.', function(p31) return string.char(bit32.bxor(string.byte(p31), math.floor(workspace:GetServerTimeNow() / 10 % 10) + 1)) end), bit32.bxor(u5 + 909090, game.ReplicatedStorage.Modules.Net.seed:InvokeServer() * 2), _Head, u17)
+                    end
+                end)
+            end
+        end
+    end
+end)
+                      -- PHẦN 3: Failsafe Timer chống kẹt, Khóa chặt gom 2 quái tránh kẹt/văng, Logic Sự kiện Sea 3 tối cao
+
+local function HasItem(itemName)
+    return Player.Backpack:FindFirstChild(itemName) or (Player.Character and Player.Character:FindFirstChild(itemName))
+end
+
+-- =========================================
+-- THUẬT TOÁN KIỂM TRA LỖI KẸT 7 PHÚT (ANTI-STUCK ENGINE)
+-- =========================================
+local LastTargetHealth = nil
+local LastHealthCheckTime = tick()
+
+local function ManageFailsafe(taskName)
+    if getgenv().CurrentTask ~= taskName then
+        getgenv().CurrentTask = taskName
+        getgenv().TaskStartTime = tick()
+        LastHealthCheckTime = tick()
+        LastTargetHealth = nil
+    end
+    
+    local timeElapsed = tick() - getgenv().TaskStartTime
+    LevelText.Text = "Level: " .. Player.Data.Level.Value .. " (FS: " .. math.floor(timeElapsed) .. "s)"
+
+    -- Kiểm tra nếu có mục tiêu, xem máu có tụt không
+    if getgenv().CurrentTarget and getgenv().CurrentTarget:FindFirstChild("Humanoid") then
+        local currentHealth = getgenv().CurrentTarget.Humanoid.Health
+        if LastTargetHealth and currentHealth < LastTargetHealth then
+            LastHealthCheckTime = tick() -- Máu có giảm -> Vẫn đang farm tốt -> Làm tươi thời gian check máu
+        end
+        LastTargetHealth = currentHealth
+    end
+
+    -- Nếu đứng im tại một task quá 7 phút (420s) HOẶC máu quái không đổi suốt 7 phút
+    if timeElapsed > 420 or (tick() - LastHealthCheckTime > 420) then
+        print("PHÁT HIỆN LỖI HỆ THỐNG HOẶC QUÁI BỊ LỖI KẸT VỊ TRÍ! TIẾN HÀNH RESET CHARACTER LÀM MỚI LỘ TRÌNH...")
+        getgenv().CurrentTarget = nil
+        getgenv().CurrentTask = ""
+        getgenv().TaskStartTime = tick()
+        LastHealthCheckTime = tick()
+        if Player.Character and Player.Character:FindFirstChild("Humanoid") then
+            Player.Character.Humanoid.Health = 0 
+        end
+        task.wait(5)
+        return true
+    end
+    return false
+end
+
+-- GOM ĐÚNG 2 QUÁI GẦN NHAU (CHỐNG VĂNG GAME, CHỐNG LỖI MẤT QUÁI)
+local StartBring = false
+local MonFarm = ""
+local PosMon = nil
+
+task.spawn(function()
+    while task.wait(0.1) do
+        pcall(function()
+            if getgenv().BringMonster and StartBring and PosMon and MonFarm ~= "" then
+                local bringCount = 0
+                for _, enemy in pairs(workspace.Enemies:GetChildren()) do
+                    if enemy.Name == MonFarm and enemy:FindFirstChild("Humanoid") and enemy:FindFirstChild("HumanoidRootPart") and enemy.Humanoid.Health > 0 then
+                        if (enemy.HumanoidRootPart.Position - PosMon.Position).Magnitude <= 350 then
+                            enemy.HumanoidRootPart.Size = Vector3.new(60, 60, 60)
+                            enemy.HumanoidRootPart.CFrame = PosMon
+                            enemy.HumanoidRootPart.CanCollide = false
+                            if enemy:FindFirstChild("Head") then enemy.Head.CanCollide = false end
+                            if enemy.Humanoid:FindFirstChild("Animator") then enemy.Humanoid.Animator:Destroy() end
+                            enemy.Humanoid.WalkSpeed = 0
+                            enemy.Humanoid.JumpPower = 0
+                            sethiddenproperty(game.Players.LocalPlayer, "SimulationRadius", math.huge)
+                            
+                            bringCount = bringCount + 1
+                            if bringCount >= 2 then break end -- GIỚI HẠN KHÔNG CHO GOM QUÁ 2 CON KHÔNG BỊ VĂNG GAME
+                        end
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+-- AUTO CODE GIÃN CÁCH AN TOÀN
+task.spawn(function()
+    local Codes = {"Sub2Fer999", "Enyu_is_Pro", "Magicbus", "JCWK", "Starcodeheo", "Bluxxy", "fudd10_v2", "SUB2GAMERROBOT_EXP1"}
+    task.wait(15)
+    for _, code in pairs(Codes) do
+        pcall(function() CommF:InvokeServer("RedeemCode", code) end)
+        task.wait(10) 
+    end
+end)
+
+-- UPDATE TRẠNG THÁI KIẾM & PHÂN TÍCH UI
+task.spawn(function()
+    while task.wait(1) do
+        pcall(function()
+            local tY = HasItem("Yama") and "✅" or "❌"
+            local tT = HasItem("Tushita") and "✅" or "❌"
+            SwordStatus.Text = "Yama: " .. tY .. " | Tushita: " .. tT
+            if HasItem("Godhuman") then GodHumanDot.BackgroundColor3 = Color3.fromRGB(0, 255, 0) else GodHumanDot.BackgroundColor3 = Color3.fromRGB(255, 0, 0) end
+        end)
+    end
+end)
+
+-- LOGIC KIỂM TRA SỰ KIỆN TOÀN DIỆN TẠI SEA 3 (CHỐNG LỖI NHẬN DIỆN SAI Ở SEA 1)
+local EliteBosses = {"Deandre", "Diablo", "Urban"}
+local function CheckSea3WorldEvents()
+    if game.PlaceId == 7449423635 or game.PlaceId == 100117331123089 then
+        -- Kiếm tra Rip Indra & Logic Tushita
+        local indra = workspace.Enemies:FindFirstChild("rip_indra True Form") or workspace.Enemies:FindFirstChild("rip_indra")
+        if indra and indra:FindFirstChild("Humanoid") and indra.Humanoid.Health > 0 then
+            if not HasItem("Tushita") then
+                local TushitaDoorCFrame = CFrame.new(4622, 45, 2841)
+                topos(TushitaDoorCFrame)
+                return "GettingTushita"
+            else 
+                return indra 
+            end
+        end
+
+        -- Kiểm tra Dough King
+        local doughKing = workspace.Enemies:FindFirstChild("Dough King")
+        if doughKing and doughKing:FindFirstChild("Humanoid") and doughKing.Humanoid.Health > 0 then 
+            return doughKing 
+        end
+
+        -- Kiểm tra điều kiện lấy Yama (Đủ 30 Elite Kills)
+        local ElitesKilled = Player:FindFirstChild("Leaderstats") and Player.Leaderstats:FindFirstChild("Elite Kills") and Player.Leaderstats["Elite Kills"].Value or 0
+        if ElitesKilled >= 30 and not HasItem("Yama") then
+            local YamaCFrame = CFrame.new(-5255, 15, 5550) 
+            if (GetHRP().Position - YamaCFrame.Position).Magnitude > 20 then 
+                topos(YamaCFrame)
+            else
+                local YamaModel = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("HydraIsland") and workspace.Map.HydraIsland:FindFirstChild("SecretTemple") and workspace.Map.HydraIsland.SecretTemple:FindFirstChild("Yama")
+                if YamaModel and YamaModel:FindFirstChild("ClickDetector") then fireclickdetector(YamaModel.ClickDetector) end
+            end
+            return "GettingYama"
+        end
+
+        -- Săn lùng Elite Hunter kiếm cốc/vật phẩm
+        for _, enemy in pairs(workspace.Enemies:GetChildren()) do
+            if table.find(EliteBosses, enemy.Name) and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then 
+                return enemy 
+            end
+        end
+    end
+    return nil
+end
+           -- PHẦN 4: Logic cấu hình đầy đủ của tất cả 9 trường phái võ thuật, tự động cày Thông thạo (Mastery 400) để up Godhuman
+
+local function GetMastery(StyleName)
+    local tool = Player.Backpack:FindFirstChild(StyleName) or Player.Character:FindFirstChild(StyleName)
+    if tool and tool:FindFirstChild("Level") then return tool.Level.Value end
+    return 0
+end
+
+local function AutoGodHumanLogic()
+    if HasItem("Godhuman") then return false end
+    
+    local beli = Player.Data.Beli.Value
+    local fragments = Player.Data.Fragments.Value
+    
+    -- 1. Black Leg (Hắc Cước)
+    if not HasItem("Black Leg") and GetMastery("Black Leg") < 400 then
+        if GetMastery("Black Leg") == 0 and beli >= 150000 then
+            CommF:InvokeServer("BuyBlackLeg")
+        else
+            getgenv().GodhumanWeapon = "Black Leg"
+            return true
+        end
+    end
+    
+    -- 2. Electro (Điện Long)
+    if not HasItem("Electro") and GetMastery("Electro") < 400 then
+        if GetMastery("Electro") == 0 and beli >= 500000 then
+            CommF:InvokeServer("BuyElectro")
+        else
+            getgenv().GodhumanWeapon = "Electro"
+            return true
+        end
+    end
+
+    -- 3. Fishman Kung Fu (Thủy quái quyền)
+    if not HasItem("Water Kung Fu") and GetMastery("Water Kung Fu") < 400 then
+        if GetMastery("Water Kung Fu") == 0 and beli >= 750000 then
+            CommF:InvokeServer("BuyWaterKungFu")
+        else
+            getgenv().GodhumanWeapon = "Water Kung Fu"
+            return true
+        end
+    end
+
+    -- 4. Dragon Breath (Long Trảo Quyền V1)
+    if not HasItem("Dragon Breath") and GetMastery("Dragon Breath") < 400 then
+        if GetMastery("Dragon Breath") == 0 and fragments >= 1500 then
+            CommF:InvokeServer("BlackbeardReward", "DragonBreath", "1")
+        else
+            getgenv().GodhumanWeapon = "Dragon Breath"
+            return true
+        end
+    end
+
+    -- 5. Superhuman (Siêu Nhân Quyền V1)
+    if not HasItem("Superhuman") and GetMastery("Superhuman") < 400 then
+        if GetMastery("Superhuman") == 0 then
+            if GetMastery("Black Leg") >= 300 and GetMastery("Electro") >= 300 and GetMastery("Water Kung Fu") >= 300 and GetMastery("Dragon Breath") >= 300 and beli >= 3000000 then
+                CommF:InvokeServer("BuySuperhuman")
+            end
+        else
+            getgenv().GodhumanWeapon = "Superhuman"
+            return true
+        end
+    end
+
+    -- 6. Death Step (Hắc Cước V2)
+    if not HasItem("Death Step") and GetMastery("Death Step") < 400 then
+        if GetMastery("Death Step") == 0 and GetMastery("Black Leg") >= 400 and beli >= 2500000 and fragments >= 5000 then
+            CommF:InvokeServer("BuyDeathStep")
+        else
+            getgenv().GodhumanWeapon = "Death Step"
+            return true
+        end
+    end
+
+    -- 7. Sharkman Karate (Thủy Quyền V2)
+    if not HasItem("Sharkman Karate") and GetMastery("Sharkman Karate") < 400 then
+        if GetMastery("Sharkman Karate") == 0 and GetMastery("Water Kung Fu") >= 400 and beli >= 2500000 and fragments >= 5000 then
+            CommF:InvokeServer("BuySharkmanKarate")
+        else
+            getgenv().GodhumanWeapon = "Sharkman Karate"
+            return true
+        end
+    end
+
+    -- 8. Electric Claw (Điện Long V2)
+    if not HasItem("Electric Claw") and GetMastery("Electric Claw") < 400 then
+        if GetMastery("Electric Claw") == 0 and GetMastery("Electro") >= 400 and beli >= 3000000 and fragments >= 5000 then
+            CommF:InvokeServer("BuyElectricClaw")
+        else
+            getgenv().GodhumanWeapon = "Electric Claw"
+            return true
+        end
+    end
+
+    -- 9. Dragon Talon (Long Trảo Quyền V2)
+    if not HasItem("Dragon Talon") and GetMastery("Dragon Talon") < 400 then
+        if GetMastery("Dragon Talon") == 0 and GetMastery("Dragon Breath") >= 400 and beli >= 3000000 and fragments >= 5000 then
+            CommF:InvokeServer("BuyDragonTalon")
+        else
+            getgenv().GodhumanWeapon = "Dragon Talon"
+            return true
+        end
+    end
+
+    -- Khi tất cả điều kiện 400 Mastery đã hoàn thành -> Tiến hành mua võ tối cao GODHUMAN
+    if beli >= 5000000 and fragments >= 5000 then
+        CommF:InvokeServer("BuyGodhuman")
+    end
+    
+    return false
+end
+           -- PHẦN 5: Tái cơ cấu Database Nhiệm vụ cực chuẩn (Đã sửa lỗi Đảo Fountain của Cấp 60), Vòng lặp Core xử lý
+
+local Mon, LevelQuest, NameQuest, NameMon, CFrameQuest, CFrameMon
+
+-- THUẬT TOÁN THÔNG MINH: ĐỦ LEVEL + PHÁT HIỆN BOSS THÌ ƯU TIÊN DIỆT BOSS, DIỆT XONG QUAY LẠI CÀY QUÁI THƯỜNG
+local function SelectTarget(Level)
+    local BossOverride = false
+    
+    local function InsertBossTask(BName, QName, QLevel, MinLevel, CQ, CM)
+        if Level >= MinLevel and workspace.Enemies:FindFirstChild(BName) then
+            local B = workspace.Enemies:FindFirstChild(BName)
+            if B:FindFirstChild("Humanoid") and B.Humanoid.Health > 0 then
+                Mon, LevelQuest, NameQuest, NameMon, CFrameQuest, CFrameMon = BName, QLevel, QName, BName, CQ, CM
+                BossOverride = true
+            end
+        end
+    end
+
+    -- =========================================================
+    -- DATABASE PHÂN TÍCH NHIỆM VỤ THEO LEVEL (CHỮA LỖI ẢNH 1000066942.jpg)
+    -- =========================================================
+    if game.PlaceId == 2753915549 or game.PlaceId == 85211729168715 then -- THẾ GIỚI 1 (SEA 1)
+        -- Quét Boss Sea 1 trước
+        InsertBossTask("Gorilla King", "JungleQuest", 3, 25, CFrame.new(-1598, 35, 153), CFrame.new(-1127, 40, -518))
+        if not BossOverride then InsertBossTask("Bobby", "BuggyQuest1", 3, 55, CFrame.new(-1141, 4, 3831), CFrame.new(-1139, 14, 4048)) end
+        if not BossOverride then InsertBossTask("Vice Admiral", "MarineQuest2", 2, 130, CFrame.new(-5039, 28, 4324), CFrame.new(-4807, 21, 4360)) end
+        
+        -- Nếu không thấy Boss, tự động điều hướng đúng Quái theo cấp độ thực tế
+        if not BossOverride then
+            if Level <= 14 then Mon = "Bandit"; LevelQuest = 1; NameQuest = "BanditQuest1"; NameMon = "Bandit"; CFrameQuest = CFrame.new(1059, 15, 1550); CFrameMon = CFrame.new(1045, 27, 1560)
+            elseif Level <= 29 then Mon = "Monkey"; LevelQuest = 1; NameQuest = "JungleQuest"; NameMon = "Monkey"; CFrameQuest = CFrame.new(-1598, 35, 153); CFrameMon = CFrame.new(-1448, 67, 11)
+            elseif Level <= 59 then Mon = "Gorilla"; LevelQuest = 2; NameQuest = "JungleQuest"; NameMon = "Gorilla"; CFrameQuest = CFrame.new(-1598, 35, 153); CFrameMon = CFrame.new(-1129, 40, -525)
+            elseif Level <= 89 then Mon = "Desert Bandit"; LevelQuest = 1; NameQuest = "DesertQuest"; NameMon = "Desert Bandit"; CFrameQuest = CFrame.new(894, 5, 4392); CFrameMon = CFrame.new(924, 6, 4481) -- ĐÃ SỬA: Level 60 sẽ vào đây chứ không lên Fountain nữa!
+            elseif Level <= 119 then Mon = "Snow Bandit"; LevelQuest = 1; NameQuest = "SnowQuest"; NameMon = "Snow Bandit"; CFrameQuest = CFrame.new(1389, 87, -1298); CFrameMon = CFrame.new(1389, 87, -1298)
+            elseif Level <= 149 then Mon = "Chief Petty Officer"; LevelQuest = 1; NameQuest = "MarineQuest2"; NameMon = "Chief Petty Officer"; CFrameQuest = CFrame.new(-5039, 28, 4324); CFrameMon = CFrame.new(-5039, 28, 4324)
+            elseif Level <= 189 then Mon = "Sky Bandit"; LevelQuest = 1; NameQuest = "SkyQuest"; NameMon = "Sky Bandit"; CFrameQuest = CFrame.new(-4839, 717, -2619); CFrameMon = CFrame.new(-4839, 717, -2619)
+            elseif Level <= 624 then Mon = "Military Soldier"; LevelQuest = 1; NameQuest = "MagmaQuest"; NameMon = "Military Soldier"; CFrameQuest = CFrame.new(-5313, 12, 8515); CFrameMon = CFrame.new(-5414, 73, 8399)
+            else Mon = "Galley Pirate"; LevelQuest = 1; NameQuest = "FountainQuest"; NameMon = "Galley Pirate"; CFrameQuest = CFrame.new(5259, 38, 4050); CFrameMon = CFrame.new(5259, 38, 4050)
+            end
+        end
+
+    elseif game.PlaceId == 4442272183 or game.PlaceId == 79091703265657 then -- THẾ GIỚI 2 (SEA 2)
+        InsertBossTask("Jeremy", "Area2Quest", 3, 850, CFrame.new(-429, 71, 1836), CFrame.new(2316, 449, 787))
+        if not BossOverride then InsertBossTask("Tide Keeper", "ForgottenQuest", 2, 1475, CFrame.new(-3065, 236, -10143), CFrame.new(-2850, 48, -10750)) end
+        
+        if not BossOverride then
+            if Level <= 774 then Mon = "Raider"; LevelQuest = 1; NameQuest = "Area1Quest"; NameMon = "Raider"; CFrameQuest = CFrame.new(-429, 71, 1836); CFrameMon = CFrame.new(-728, 52, 2345)
+            elseif Level <= 924 then Mon = "Swan Pirate"; LevelQuest = 1; NameQuest = "Area2Quest"; NameMon = "Swan Pirate"; CFrameQuest = CFrame.new(-429, 71, 1836); CFrameMon = CFrame.new(898, 15, 1215)
+            else Mon = "Water Fighter"; LevelQuest = 1; NameQuest = "ForgottenQuest"; NameMon = "Water Fighter"; CFrameQuest = CFrame.new(-3065, 236, -10143); CFrameMon = CFrame.new(-3065, 236, -10143)
+            end
+        end
+
+    elseif game.PlaceId == 7449423635 or game.PlaceId == 100117331123089 then -- THẾ GIỚI 3 (SEA 3 CODES UP 2800)
+        InsertBossTask("Stone", "PiratePortQuest", 3, 1550, CFrame.new(-450, 107, 5950), CFrame.new(-1049, 39, 6720))
+        
+        if not BossOverride then
+            if Level <= 1574 then Mon = "Pirate Millionaire"; LevelQuest = 1; NameQuest = "PiratePortQuest"; NameMon = "Pirate Millionaire"; CFrameQuest = CFrame.new(-450, 107, 5950); CFrameMon = CFrame.new(-245, 47, 5584)
+            elseif Level <= 1699 then Mon = "Dragon Crew Warrior"; LevelQuest = 1; NameQuest = "AmazonQuest"; NameMon = "Dragon Crew Warrior"; CFrameQuest = CFrame.new(5833, 51, -4804); CFrameMon = CFrame.new(5833, 51, -4804)
+            else Mon = "Grand Devotee"; LevelQuest = 2; NameQuest = "SubmergedQuest3"; NameMon = "Grand Devotee"; CFrameQuest = CFrame.new(9636, -1992, 9609); CFrameMon = CFrame.new(9557, -1928, 9859)
+            end
+        end
+    end
+end
+
+local function AutoEquipWeapon()
+    local weaponName = (getgenv().AutoGodHuman and not HasItem("Godhuman")) and getgenv().GodhumanWeapon or nil
+    for _, tool in pairs(Player.Backpack:GetChildren()) do
+        if tool:IsA("Tool") then
+            if weaponName and tool.Name == weaponName then 
+                Player.Character.Humanoid:EquipTool(tool)
+                break
+            elseif not weaponName and (tool.ToolTip == "Melee" or tool.ToolTip == "Sword") then 
+                Player.Character.Humanoid:EquipTool(tool)
+                break
+            end
+        end
+    end
+end
+
+-- =========================================
+-- VÒNG LẶP ĐIỀU PHỐI HOÀN CHỈNH (MAIN CORE SYSTEM)
+-- =========================================
+task.spawn(function()
+    while task.wait() do
+        if getgenv().Kaitun then
+            pcall(function()
+                if Player.Data.Level.Value >= 2800 then return end
+                
+                -- 1. Ưu tiên tối cao đối với Sự kiện đặc biệt ở Sea 3 (Dough King / Indra / Yama / Tushita)
+                local WorldBoss = CheckSea3WorldEvents()
+                if WorldBoss then
+                    if ManageFailsafe("WorldEvent_" .. tostring(WorldBoss)) then return end
+                    if typeof(WorldBoss) == "Instance" and WorldBoss:IsA("Model") then
+                        getgenv().CurrentTarget = WorldBoss
+                        PosMon = WorldBoss.HumanoidRootPart.CFrame
+                        StartBring = true
+                        MonFarm = WorldBoss.Name
+                        topos(WorldBoss.HumanoidRootPart.CFrame * CFrame.new(0, 25, 0))
+                        AutoEquipWeapon()
+                        return
+                    elseif WorldBoss == "GettingTushita" or WorldBoss == "GettingYama" then 
+                        return 
+                    end
+                end
+
+                -- 2. Ưu tiên thực thi hệ thống võ thuật Godhuman nếu bật cấu hình
+                if getgenv().AutoGodHuman and AutoGodHumanLogic() then 
+                    -- Đang trong trạng thái cày mastery của võ chỉ định, chuyển đổi farm nhiệm vụ thường dưới dạng võ này
+                end
+
+                -- 3. Tiến hành phân tích chọn mục tiêu (Boss + Quái thường)
+                SelectTarget(Player.Data.Value or Player.Data.Level.Value)
+                if ManageFailsafe("Farming_" .. Mon) then return end 
+
+                local QuestUI = Player.PlayerGui.Main.Quest
+                local QuestTitle = QuestUI.Container.QuestTitle.Title.Text
+                
+                if not QuestUI.Visible or not string.find(QuestTitle, NameMon) then
+                    if QuestUI.Visible then CommF:InvokeServer("AbandonQuest") task.wait(0.3) end
+                    StartBring = false
+                    getgenv().CurrentTarget = nil
+                    if (GetHRP().Position - CFrameQuest.Position).Magnitude > 20 then 
+                        topos(CFrameQuest) 
+                    else 
+                        CommF:InvokeServer("StartQuest", NameQuest, LevelQuest) 
+                        getgenv().TaskStartTime = tick() -- Reset mốc thời gian chống kẹt ngay khi nhận quest thành công
+                    end
+                else
+                    local Target = getgenv().CurrentTarget
+                    if Target and Target.Parent and Target:FindFirstChild("Humanoid") and Target.Humanoid.Health > 0 and Target:FindFirstChild("HumanoidRootPart") then
+                        if Player.Character and not Player.Character:FindFirstChild("HasBuso") then CommF:InvokeServer("Buso") end
+                        AutoEquipWeapon()
+                        PosMon = Target.HumanoidRootPart.CFrame
+                        StartBring = true
+                        MonFarm = Target.Name
+                        topos(Target.HumanoidRootPart.CFrame * CFrame.new(0, 24, 0))
+                    else
+                        getgenv().CurrentTarget = nil
+                        StartBring = false
+                        for _, mob in pairs(workspace.Enemies:GetChildren()) do
+                            if mob.Name == Mon and mob:FindFirstChild("Humanoid") and mob:FindFirstChild("HumanoidRootPart") and mob.Humanoid.Health > 0 then
+                                getgenv().CurrentTarget = mob
+                                break
+                            end
+                        end
+                        if not getgenv().CurrentTarget then topos(CFrameMon) end
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- GACHA TỰ ĐỘNG & CHỐNG DISCONNECT KHI AFK TREO ĐÊM
+task.spawn(function()
+    while task.wait(5) do
+        if getgenv().AutoRandomFruit then
+            pcall(function()
+                CommF:InvokeServer("Cousin", "Buy")
+                for _, inv in pairs(Player.Backpack:GetChildren()) do
+                    if string.find(inv.Name, "Fruit") then CommF:InvokeServer("StoreFruit", inv:GetAttribute("OriginalName"), inv) end
+                end
+            end)
+        end
+    end
+end)
+Player.Idled:Connect(function()
+    VirtualUser:Button2Down(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+    task.wait(1)
+    VirtualUser:Button2Up(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+end)
+           
