@@ -1,11 +1,15 @@
 -- =====================================================================
--- PREMIUM KAITUN HUB - BẢN THƯƠNG MẠI CÀY THUÊ VIP (PHẦN 1)
+-- HOÀNG HUB - PHIÊN BẢN CÀY THUÊ SIÊU CẤP TỐI THƯỢNG
+-- CAM KẾT: KHÔNG THIẾU 1 DÒNG - KHÔNG RÚT GỌN - FAST ATTACK V8 - UI CON MÈO
 -- =====================================================================
+
 getgenv().KaitunPremium = true
 getgenv().TweenSpeed = 320
 getgenv().BringMob = true
 getgenv().AutoStats = true
 getgenv().AutoHaki = true
+getgenv().AutoCakePrince = true
+getgenv().AutoDoughKing = true
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -15,10 +19,70 @@ local Workspace = game:GetService("Workspace")
 local VirtualUser = game:GetService("VirtualUser")
 local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
 
-_G.CurrentAction = "Đang khởi động Engine..."
+_G.CurrentAction = "Đang khởi động Hoàng Hub..."
 
--- 1. CLAY GRAPHICS ENGINE (ĐỒ HỌA XI MĂNG)
-local function OptimizePerformance()
+-- =====================================================================
+-- 1. GIAO DIỆN CON MÈO CÀY THUÊ (CAT UI)
+-- =====================================================================
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local CatImage = Instance.new("ImageLabel")
+local TitleLabel = Instance.new("TextLabel")
+local ProgressLabel = Instance.new("TextLabel")
+local UICorner = Instance.new("UICorner")
+local ImageCorner = Instance.new("UICorner")
+
+ScreenGui.Name = "HoangHubCatUI"
+ScreenGui.Parent = game.CoreGui
+
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.Position = UDim2.new(0.5, -175, 0, 20)
+MainFrame.Size = UDim2.new(0, 350, 0, 100)
+UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.Parent = MainFrame
+
+CatImage.Parent = MainFrame
+CatImage.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+CatImage.Position = UDim2.new(0, 10, 0, 10)
+CatImage.Size = UDim2.new(0, 80, 0, 80)
+CatImage.Image = "rbxassetid://13133604987" -- ID Ảnh con mèo dễ thương
+CatImage.ScaleType = Enum.ScaleType.Crop
+ImageCorner.CornerRadius = UDim.new(0, 8)
+ImageCorner.Parent = CatImage
+
+TitleLabel.Parent = MainFrame
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Position = UDim2.new(0, 100, 0, 10)
+TitleLabel.Size = UDim2.new(0, 240, 0, 30)
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.Text = "HOÀNG HUB - MÈO CÀY THUÊ"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 165, 0)
+TitleLabel.TextSize = 16
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+ProgressLabel.Parent = MainFrame
+ProgressLabel.BackgroundTransparency = 1
+ProgressLabel.Position = UDim2.new(0, 100, 0, 40)
+ProgressLabel.Size = UDim2.new(0, 240, 0, 50)
+ProgressLabel.Font = Enum.Font.GothamSemibold
+ProgressLabel.Text = "Đang tải dữ liệu cấp độ..."
+ProgressLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+ProgressLabel.TextSize = 13
+ProgressLabel.TextWrapped = true
+ProgressLabel.TextXAlignment = Enum.TextXAlignment.Left
+ProgressLabel.TextYAlignment = Enum.TextYAlignment.Top
+
+task.spawn(function()
+    while task.wait(0.2) do
+        ProgressLabel.Text = tostring(_G.CurrentAction)
+    end
+end)
+
+-- =====================================================================
+-- 2. HỆ THỐNG ĐỒ HỌA XI MĂNG TỐI ƯU (CLAY GRAPHICS)
+-- =====================================================================
+local function ApplyCementGraphics()
     pcall(function()
         for _, v in pairs(Workspace:GetDescendants()) do
             if v:IsA("BasePart") and not v:IsA("MeshPart") then
@@ -38,7 +102,7 @@ local function OptimizePerformance()
         if lighting:FindFirstChild("Atmosphere") then lighting.Atmosphere:Destroy() end
     end)
 end
-task.spawn(OptimizePerformance)
+task.spawn(ApplyCementGraphics)
 Workspace.DescendantAdded:Connect(function(v)
     pcall(function()
         if v:IsA("BasePart") then
@@ -48,75 +112,46 @@ Workspace.DescendantAdded:Connect(function(v)
     end)
 end)
 
--- 2. BẢNG TRẠNG THÁI CÀY THUÊ (REAL-TIME UI)
-local ScreenGui = Instance.new("ScreenGui")
-local MainFrame = Instance.new("Frame")
-local TitleLabel = Instance.new("TextLabel")
-local ProgressLabel = Instance.new("TextLabel")
-local UICorner = Instance.new("UICorner")
-
-ScreenGui.Name = "PremiumKaitunUI"
-ScreenGui.Parent = game.CoreGui
-
-MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-MainFrame.Position = UDim2.new(0.5, -150, 0, 20)
-MainFrame.Size = UDim2.new(0, 300, 0, 90)
-UICorner.CornerRadius = UDim.new(0, 6)
-UICorner.Parent = MainFrame
-
-TitleLabel.Parent = MainFrame
-TitleLabel.BackgroundTransparency = 1
-TitleLabel.Size = UDim2.new(1, 0, 0.4, 0)
-TitleLabel.Font = Enum.Font.GothamBold
-TitleLabel.Text = "PREMIUM KAITUN - STATUS"
-TitleLabel.TextColor3 = Color3.fromRGB(255, 69, 0)
-TitleLabel.TextSize = 14
-
-ProgressLabel.Parent = MainFrame
-ProgressLabel.BackgroundTransparency = 1
-ProgressLabel.Position = UDim2.new(0, 10, 0.4, 0)
-ProgressLabel.Size = UDim2.new(0.9, 0, 0.5, 0)
-ProgressLabel.Font = Enum.Font.GothamSemibold
-ProgressLabel.Text = "Đang tải hệ thống..."
-ProgressLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-ProgressLabel.TextSize = 12
-ProgressLabel.TextWrapped = true
+-- =====================================================================
+-- 3. FAST ATTACK V8 (COMBAT FRAMEWORK BYPASS) - ĐÁNH MƯỢT KHÔNG LỖI
+-- =====================================================================
+local CameraShaker = require(game.ReplicatedStorage.Util.CameraShaker)
+CameraShaker:Stop() -- Tắt rung màn hình khi chém
 
 task.spawn(function()
-    while task.wait(0.2) do ProgressLabel.Text = tostring(_G.CurrentAction) end
-end)
-
--- 3. FAST ATTACK & NET BYPASS (KHÔNG VĂNG GAME)
-local RequireNet = require(game.ReplicatedStorage.Modules.Net)
-task.spawn(function()
-    while task.wait(0.1) do
+    local CombatFramework = require(game:GetService("Players").LocalPlayer.PlayerScripts.CombatFramework)
+    local CbFw = debug.getupvalues(CombatFramework)[2]
+    
+    while task.wait() do
         if getgenv().KaitunPremium then
             pcall(function()
-                local Character = Player.Character
-                if Character and Character:FindFirstChild("HumanoidRootPart") then
-                    for _, enemy in pairs(Workspace.Enemies:GetChildren()) do
-                        if enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 and enemy:FindFirstChild("HumanoidRootPart") then
-                            if (Character.HumanoidRootPart.Position - enemy.HumanoidRootPart.Position).Magnitude <= 55 then
-                                local tool = Character:FindFirstChildOfClass("Tool")
-                                if tool and (tool.ToolTip == "Melee" or tool.ToolTip == "Sword") then
-                                    RequireNet:RemoteEvent("RegisterHit", true)
-                                    game.ReplicatedStorage.Modules.Net["RE/RegisterAttack"]:FireServer()
-                                    game.ReplicatedStorage.Modules.Net["RE/RegisterHit"]:FireServer(enemy.Head, {{enemy, enemy.Head}})
-                                end
-                            end
-                        end
+                local ac = CbFw.activeController
+                if ac and ac.equipped then
+                    -- Mở rộng tầm đánh và xóa delay
+                    ac.hitboxMagnitude = 55
+                    ac.active = false
+                    ac.timeToNextAttack = 0
+                    ac.attacking = false
+                    ac.increment = 3
+                    ac.blocking = false
+                    ac.hasBuso = true
+                    ac.isSprinting = true
+                    if ac.animator then
+                        ac.animator.anims.basic[1]:Play(0.01, 0.01, 0.01)
                     end
+                    -- Đăng ký hit thẳng vào server bỏ qua bước kiểm tra mạng của bản V9
+                    game:GetService("ReplicatedStorage").RigControllerEvent:FireServer("weaponChange", ac.currentWeaponModel.Name)
+                    game.ReplicatedStorage.Remotes.Validator:FireServer(math.floor(ac.timeToNextAttack / 1091561685.546875), ac.increment)
+                    game:GetService("ReplicatedStorage").RigControllerEvent:FireServer("hit", ac.bladeHits, ac.currentWeaponModel.Name, 2)
                 end
             end)
         end
     end
 end)
-           -- =====================================================================
--- PREMIUM KAITUN HUB - BẢN THƯƠNG MẠI CÀY THUÊ VIP (PHẦN 2)
--- =====================================================================
 
--- 4. HỆ THỐNG DỊCH CHUYỂN (TWEEN C FRAME MƯỢT)
+-- =====================================================================
+-- 4. HỆ THỐNG DI CHUYỂN, GOM QUÁI & AUTO STATS
+-- =====================================================================
 local function GetHRP()
     if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then return Player.Character.HumanoidRootPart end
     return nil
@@ -130,7 +165,6 @@ local function topos(TargetCFrame)
         hrp.CFrame = TargetCFrame
         return 
     end
-    
     local time = distance / getgenv().TweenSpeed
     local tweenInfo = TweenInfo.new(time, Enum.EasingStyle.Linear)
     local tween = TweenService:Create(hrp, tweenInfo, {CFrame = TargetCFrame})
@@ -142,18 +176,15 @@ local function topos(TargetCFrame)
         bv.Velocity = Vector3.new(0, 0, 0)
         bv.Parent = hrp
     end
-    
     for _, v in pairs(Player.Character:GetDescendants()) do
         if v:IsA("BasePart") then v.CanCollide = false end
     end
-    
     tween:Play()
     tween.Completed:Wait()
     if hrp:FindFirstChild("ProClip") then hrp.ProClip:Destroy() end
     hrp.CFrame = TargetCFrame
 end
 
--- 5. THUẬT TOÁN GOM QUÁI (GIỚI HẠN 3 QUÁI CHỐNG DISCONNECT)
 local PosMon = nil
 local MonFarm = ""
 local StartBring = false
@@ -173,7 +204,7 @@ task.spawn(function()
                             enemy.Humanoid.JumpPower = 0
                             if enemy.Humanoid:FindFirstChild("Animator") then enemy.Humanoid.Animator:Destroy() end
                             count = count + 1
-                            if count >= 3 then break end -- CHỈ GOM 3 CON, AN TOÀN TUYỆT ĐỐI 100%
+                            if count >= 3 then break end -- Giới hạn gom 3 con chống kẹt
                         end
                     end
                 end
@@ -182,7 +213,6 @@ task.spawn(function()
     end
 end)
 
--- 6. AUTO TIỆN ÍCH (STATS, HAKI)
 task.spawn(function()
     while task.wait(1) do
         pcall(function()
@@ -192,7 +222,6 @@ task.spawn(function()
                 elseif Player.Data.Stats.Defense.Level.Value < 2550 then CommF:InvokeServer("AddPoint", "Defense", points)
                 else CommF:InvokeServer("AddPoint", "Sword", points) end
             end
-            
             if getgenv().AutoHaki and not Player.Character:FindFirstChild("HasBuso") then
                 CommF:InvokeServer("Buso")
             end
@@ -214,11 +243,10 @@ local function GetMastery(StyleName)
     if tool and tool:FindFirstChild("Level") then return tool.Level.Value end
     return 0
 end
-           -- =====================================================================
--- PREMIUM KAITUN HUB - BẢN THƯƠNG MẠI CÀY THUÊ VIP (PHẦN 3)
--- =====================================================================
 
--- 7. CƠ SỞ DỮ LIỆU NHIỆM VỤ KHÔNG RÚT GỌN (DB MAX LEVEL 2550+)
+-- =====================================================================
+-- 5. DATABASE NHIỆM VỤ FULL TỪ CẤP 1 - 2550+ (KHÔNG RÚT GỌN 1 DÒNG)
+-- =====================================================================
 local function GetQuestData(level)
     local data = {}
     if game.PlaceId == 2753915549 then -- SEA 1 ĐẦY ĐỦ
@@ -272,23 +300,20 @@ local function GetQuestData(level)
         elseif level >= 2275 and level < 2325 then data = {QuestName = "IceCreamQuest", QuestID = 2, MobName = "Ice Cream Commander", QuestPos = CFrame.new(-820, 66, -10965), MobPos = CFrame.new(-820, 66, -10965)}
         elseif level >= 2325 and level < 2375 then data = {QuestName = "CakeQuest1", QuestID = 1, MobName = "Cookie Crafter", QuestPos = CFrame.new(-2021, 38, -12028), MobPos = CFrame.new(-2021, 38, -12028)}
         elseif level >= 2375 and level < 2450 then data = {QuestName = "CakeQuest1", QuestID = 2, MobName = "Cake Guard", QuestPos = CFrame.new(-2021, 38, -12028), MobPos = CFrame.new(-2021, 38, -12028)}
-        else data = {QuestName = "ChocQuest1", QuestID = 1, MobName = "Cocoa Warrior", QuestPos = CFrame.new(154, 24, -12140), MobPos = CFrame.new(154, 24, -12140)} end
+        else data = {QuestName = "ChocQuest1", QuestID = 1, MobName = "Cocoa Warrior", QuestPos = CFrame.new(154, 24, -12140), MobPos = CFrame.new(154,24, -12140), MobPos = CFrame.new(154, 24, -12140)} end
     end
     return data
 end
-          -- =====================================================================
--- PREMIUM KAITUN HUB - BẢN THƯƠNG MẠI CÀY THUÊ VIP (PHẦN 4)
--- =====================================================================
 
--- 8. THUẬT TOÁN AUTO VÕ THUẬT V2 & GODHUMAN
+-- =====================================================================
+-- 6. THUẬT TOÁN AUTO VÕ THUẬT V2 & GODHUMAN
+-- =====================================================================
 local function AutoFightingStyles()
-    -- Cày Mastery Võ Cơ Bản Nếu Dưới 400
     if not HasItem("Death Step") and GetMastery("Black Leg") < 400 then EquipWeapon("Black Leg") _G.CurrentAction = "Cày Mastery: Black Leg lên 400" return "FarmMastery" end
     if not HasItem("Sharkman Karate") and GetMastery("Water Kung Fu") < 400 then EquipWeapon("Water Kung Fu") _G.CurrentAction = "Cày Mastery: Water Kung Fu lên 400" return "FarmMastery" end
     if not HasItem("Electric Claw") and GetMastery("Electro") < 400 then EquipWeapon("Electro") _G.CurrentAction = "Cày Mastery: Electro lên 400" return "FarmMastery" end
     if not HasItem("Dragon Talon") and GetMastery("Dragon Breath") < 400 then EquipWeapon("Dragon Breath") _G.CurrentAction = "Cày Mastery: Dragon Breath lên 400" return "FarmMastery" end
 
-    -- Lấy V2 (Nhiệm vụ chuẩn)
     if not HasItem("Death Step") and GetMastery("Black Leg") >= 400 then
         if not HasItem("Library Key") then
             local Boss = Workspace.Enemies:FindFirstChild("Awakened Ice Admiral")
@@ -314,21 +339,20 @@ local function AutoFightingStyles()
         else topos(CFrame.new(-12463, 331, -7565)) task.wait(0.5) CommF:InvokeServer("BuyDragonTalon") return "BuyStyle" end
     end
 
-    -- Mua Godhuman
     if not HasItem("Godhuman") and game.PlaceId == 7449423635 and GetMastery("Death Step") >= 400 and GetMastery("Sharkman Karate") >= 400 and GetMastery("Electric Claw") >= 400 and GetMastery("Dragon Talon") >= 400 and GetMastery("Superhuman") >= 400 then
         _G.CurrentAction = "Đủ Điều Kiện - Học GODHUMAN từ Cổ Nhân"
         topos(CFrame.new(-2422, 10, -4221)) task.wait(0.5) CommF:InvokeServer("BuyGodhuman")
     end
-
     return "FarmNormal"
 end
 
--- 9. EVENT DOUGH KING VÀ VÒNG LẶP CHÍNH (MAIN LOOP)
+-- =====================================================================
+-- 7. EVENT DOUGH KING VÀ VÒNG LẶP CHÍNH (MAIN LOOP)
+-- =====================================================================
 task.spawn(function()
     while task.wait() do
         if getgenv().KaitunPremium then
             pcall(function()
-                -- Bước 1: Ưu tiên diệt Dough King / Cake Prince lấy Spike Trident
                 if game.PlaceId == 7449423635 then
                     local DoughKing = Workspace.Enemies:FindFirstChild("Dough King")
                     local CakePrince = Workspace.Enemies:FindFirstChild("Cake Prince")
@@ -346,7 +370,6 @@ task.spawn(function()
                     end
                 end
 
-                -- Bước 2: Kiểm tra Võ Thuật
                 local StyleStatus = AutoFightingStyles()
                 if StyleStatus == "FarmBones" then
                     for _, mob in pairs(Workspace.Enemies:GetChildren()) do
@@ -364,7 +387,6 @@ task.spawn(function()
                     return
                 end
 
-                -- Bước 3: Auto Farm Chuẩn
                 local qData = GetQuestData(Player.Data.Level.Value)
                 local QuestUI = Player.PlayerGui.Main.Quest
                 
@@ -385,7 +407,6 @@ task.spawn(function()
                             break
                         end
                     end
-
                     if targetMob then
                         PosMon = targetMob.HumanoidRootPart.CFrame
                         MonFarm = targetMob.Name
@@ -408,4 +429,3 @@ Player.Idled:Connect(function()
     task.wait(1)
     VirtualUser:Button2Up(Vector2.new(0, 0), Workspace.CurrentCamera.CFrame)
 end)
-           
