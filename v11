@@ -1,0 +1,889 @@
+-- =====================================================================
+-- HOÀNG HUB - SIÊU PHẨM KAITUN CÀY THUÊ V7 KHÔI PHỤC HOÀN TOÀN (FIX 100%)
+-- PHẦN 1: KHỞI TẠO BIẾN TOÀN CỤC & HỆ THỐNG GIAO DIỆN MÈO V7 KHÔNG LỖI UI
+-- =====================================================================
+
+getgenv().KaitunPremium = true
+getgenv().TweenSpeed = 315
+getgenv().BringMob = true
+getgenv().AutoStats = true
+getgenv().AutoHaki = true
+getgenv().AutoRandomFruit = true
+getgenv().AutoBringFruit = true
+getgenv().SelectTeam = "Pirates" -- Tự động vào Hải Tặc
+
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local Workspace = game:GetService("Workspace")
+local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+
+_G.CurrentAction = "Khởi tạo hệ thống V7..."
+_G.MonFarm = ""
+local PosMon = nil
+local StartBring = false
+
+-- KHỞI TẠO KHUNG GIAO DIỆN CON MÈO V7 NGUYÊN BẢN CHUẨN ĐẸP
+if CoreGui:FindFirstChild("HoangHubCatV7") then
+    CoreGui:FindFirstChild("HoangHubCatV7"):Destroy()
+end
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "HoangHubCatV7"
+ScreenGui.Parent = CoreGui
+ScreenGui.ResetOnSpawn = false
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 360, 0, 120)
+MainFrame.Position = UDim2.new(0.5, -180, 0.3, -60)
+MainFrame.BackgroundColor3 = Color3.fromRGB(24, 24, 26)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Parent = ScreenGui
+
+local UICorner_Main = Instance.new("UICorner")
+UICorner_Main.CornerRadius = UDim.new(0, 16)
+UICorner_Main.Parent = MainFrame
+
+local UIStroke_Main = Instance.new("UIStroke")
+UIStroke_Main.Color = Color3.fromRGB(255, 105, 180) -- Viền hồng cute đặc trưng V7
+UIStroke_Main.Thickness = 2
+UIStroke_Main.Parent = MainFrame
+
+-- KHUNG CHỨA ẢNH CON MÈO DỄ THƯƠNG V7 FIXED
+local CatImageContainer = Instance.new("Frame")
+CatImageContainer.Name = "CatImageContainer"
+CatImageContainer.Size = UDim2.new(0, 90, 0, 90)
+CatImageContainer.Position = UDim2.new(0, 15, 0, 15)
+CatImageContainer.BackgroundColor3 = Color3.fromRGB(32, 32, 35)
+CatImageContainer.BorderSizePixel = 0
+CatImageContainer.Parent = MainFrame
+
+local UICorner_Cat = Instance.new("UICorner")
+UICorner_Cat.CornerRadius = UDim.new(0, 12)
+UICorner_Cat.Parent = CatImageContainer
+
+local CatImage = Instance.new("ImageLabel")
+CatImage.Name = "CatImage"
+CatImage.Size = UDim2.new(0, 80, 0, 80)
+CatImage.Position = UDim2.new(0.5, -40, 0.5, -40)
+CatImage.BackgroundTransparency = 1
+CatImage.Image = "rbxassetid://11401813134" -- ID mèo Chibi cute gốc hiển thị 100% không lỗi ô trắng
+CatImage.ScaleType = Enum.ScaleType.Fit
+CatImage.Parent = CatImageContainer
+
+-- TIÊU ĐỀ SCRIPT V7
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Name = "TitleLabel"
+TitleLabel.Size = UDim2.new(0, 230, 0, 25)
+TitleLabel.Position = UDim2.new(0, 115, 0, 15)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Text = "HOÀNG HUB - CÀY THUÊ V7 CHÍNH HIỆU"
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.TextSize = 15
+TitleLabel.TextColor3 = Color3.fromRGB(255, 105, 180)
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+TitleLabel.Parent = MainFrame
+
+-- TRẠNG THÁI HOẠT ĐỘNG KHÔNG LỖI PHÔNG CHỮ
+local ActionLabel = Instance.new("TextLabel")
+ActionLabel.Name = "ActionLabel"
+ActionLabel.Size = UDim2.new(0, 230, 0, 20)
+ActionLabel.Position = UDim2.new(0, 115, 0, 45)
+ActionLabel.BackgroundTransparency = 1
+ActionLabel.Text = "Trạng thái: Đang kết nối dữ liệu..."
+ActionLabel.Font = Enum.Font.GothamSemibold
+ActionLabel.TextSize = 12
+ActionLabel.TextColor3 = Color3.fromRGB(240, 240, 240)
+ActionLabel.TextXAlignment = Enum.TextXAlignment.Left
+ActionLabel.Parent = MainFrame
+
+local TargetLabel = Instance.new("TextLabel")
+TargetLabel.Name = "TargetLabel"
+TargetLabel.Size = UDim2.new(0, 230, 0, 20)
+TargetLabel.Position = UDim2.new(0, 115, 0, 65)
+TargetLabel.BackgroundTransparency = 1
+TargetLabel.Text = "Mục tiêu: Đang quét quái..."
+TargetLabel.Font = Enum.Font.GothamSemibold
+TargetLabel.TextSize = 11
+TargetLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+TargetLabel.TextXAlignment = Enum.TextXAlignment.Left
+TargetLabel.Parent = MainFrame
+
+local CreditLabel = Instance.new("TextLabel")
+CreditLabel.Name = "CreditLabel"
+CreditLabel.Size = UDim2.new(0, 230, 0, 15)
+CreditLabel.Position = UDim2.new(0, 115, 0, 88)
+CreditLabel.BackgroundTransparency = 1
+CreditLabel.Text = "Hệ thống tự động vận hành nâng cấp V7 Pro"
+CreditLabel.Font = Enum.Font.GothamItalic
+CreditLabel.TextSize = 10
+CreditLabel.TextColor3 = Color3.fromRGB(120, 120, 120)
+CreditLabel.TextXAlignment = Enum.TextXAlignment.Left
+CreditLabel.Parent = MainFrame
+
+-- VÒNG LẶP LIÊN TỤC CẬP NHẬT TRẠNG THÁI LÊN GIAO DIỆN CÁ TRỰC QUAN
+task.spawn(function()
+    while task.wait(0.2) do
+        pcall(function()
+            ActionLabel.Text = "Trạng thái: " .. tostring(_G.CurrentAction)
+            if _G.MonFarm and _G.MonFarm ~= "" then
+                TargetLabel.Text = "Mục tiêu: " .. tostring(_G.MonFarm)
+            else
+                TargetLabel.Text = "Mục tiêu: Đang quét bãi farm..."
+            end
+        end)
+    end
+end)
+
+-- THUẬT TOÁN KÉO THẢ GIAO DIỆN (DRAG UI) HOÀN TOÀN KHÔNG BỊ KHỰA HOẶC KẸT CHUỘT
+local dragging, dragInput, dragStart, startPos
+local function update(input)
+    local delta = input.Position - dragStart
+    MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+MainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+MainFrame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+      end)
+      -- =====================================================================
+-- PHẦN 2: TỰ ĐỘNG CHỌN PHE, CHỐNG AFK KICK, TỐI ƯU HÓA XI MĂNG & TWEEN BYPASS
+-- =====================================================================
+
+-- TỰ ĐỘNG VÀO PHE HẢI TẶC (HOẶC HẢI QUÂN) NGAY KHI VÀO GAME KHÔNG TREO KHUNG CHỌN
+local function AutoJoinTeamEngine()
+    pcall(function()
+        if not Player.Team or (Player.Team.Name ~= "Pirates" and Player.Team.Name ~= "Marines") then
+            local target = "Pirates"
+            if getgenv().SelectTeam == "Marines" then
+                target = "Marines"
+            end
+            CommF:InvokeServer("SetTeam", target)
+        end
+    end)
+end
+task.spawn(function()
+    while task.wait(1) do
+        if Player.Team and (Player.Team.Name == "Pirates" or Player.Team.Name == "Marines") then break end
+        AutoJoinTeamEngine()
+    end
+end)
+
+-- CHỐNG AFK KICK TUYỆT ĐỐI 100% TỪ BẢN V7 GIÚP CÀY THUÊ KHÔNG LO BỊ NGẮT KẾT NỐI
+local VirtualUser = game:GetService("VirtualUser")
+Player.Idled:Connect(function()
+    pcall(function()
+        VirtualUser:Button2Down(Vector2.new(0, 0), Workspace.CurrentCamera.CFrame)
+        task.wait(0.5)
+        VirtualUser:Button2Up(Vector2.new(0, 0), Workspace.CurrentCamera.CFrame)
+    end)
+end)
+
+-- BỘ TỐI ƯU HÓA ĐỒ HỌA XI MĂNG V7 CHUẨN ĐỂ MÁY CHẠY MƯỢT MÀ KHÔNG NÓNG MÁY KHÔNG LỖI
+local function SmoothCementGraphics()
+    pcall(function()
+        for _, v in pairs(Workspace:GetDescendants()) do
+            if v:IsA("BasePart") and not v:IsA("MeshPart") then
+                v.Material = Enum.Material.SmoothPlastic
+                v.Color = Color3.fromRGB(115, 115, 115)
+                v.Reflectance = 0
+            elseif v:IsA("Decal") or v:IsA("Texture") or v:IsA("Shirt") or v:IsA("Pants") then
+                v:Destroy()
+            elseif v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Explosion") then
+                v.Enabled = false
+            end
+        end
+        local lighting = game:GetService("Lighting")
+        lighting.GlobalShadows = false
+        lighting.FogEnd = 9e9
+        if lighting:FindFirstChild("Blur") then lighting.Blur:Destroy() end
+        if lighting:FindFirstChild("Atmosphere") then lighting.Atmosphere:Destroy() end
+    end)
+end
+task.spawn(SmoothCementGraphics)
+
+Workspace.DescendantAdded:Connect(function(v)
+    pcall(function()
+        if v:IsA("BasePart") then
+            v.Material = Enum.Material.SmoothPlastic
+            v.Color = Color3.fromRGB(115, 115, 115)
+        elseif v:IsA("Decal") or v:IsA("Texture") then 
+            v:Destroy() 
+        end
+    end)
+end)
+
+-- THUẬT TOÁN DI CHUYỂN TWEEN CFRAME BYPASS KHÔNG BỊ KHÓA NHÂN VẬT VẬN HÀNH ỔN ĐỊNH
+local function GetCharacterRoot()
+    if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+        return Player.Character.HumanoidRootPart
+    end
+    return nil
+end
+
+function topos(TargetCFrame)
+    local root = GetCharacterRoot()
+    if not root then return end
+    
+    local distance = (root.Position - TargetCFrame.Position).Magnitude
+    if distance < 18 then 
+        root.CFrame = TargetCFrame
+        return 
+    end
+    
+    local speed = getgenv().TweenSpeed or 300
+    local calculatedTime = distance / speed
+    local tweenInfo = TweenInfo.new(calculatedTime, Enum.EasingStyle.Linear)
+    
+    -- Khởi tạo lực nâng chống rớt vực khi di chuyển qua các biển
+    if not root:FindFirstChild("V7AntiFallVelocity") then
+        local bodyVelocity = Instance.new("BodyVelocity")
+        bodyVelocity.Name = "V7AntiFallVelocity"
+        bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+        bodyVelocity.Parent = root
+    end
+    
+    -- Tắt va chạm tạm thời để không bị kẹt tường, kẹt núi lửa
+    for _, part in pairs(Player.Character:GetDescendants()) do
+        if part:IsA("BasePart") then 
+            part.CanCollide = false 
+        end
+    end
+    
+    local tween = TweenService:Create(root, tweenInfo, {CFrame = TargetCFrame})
+    tween:Play()
+    tween.Completed:Wait()
+    
+    if root:FindFirstChild("V7AntiFallVelocity") then 
+        root.V7AntiFallVelocity:Destroy() 
+    end
+    root.CFrame = TargetCFrame
+      end
+      -- =====================================================================
+-- PHẦN 3: LÕI CƠ CHẾ SÁT THƯƠNG FAST ATTACK V7 NGUYÊN BẢN & AUTO STATS CHUẨN CÀY THUÊ
+-- =====================================================================
+
+-- KHÓA HIỆU ỨNG RUNG MÀN HÌNH ĐỂ GIỮ ÔN ĐỊNH FRAME CHƠI GAME KHÔNG LỖI ĐƠ MÁY
+pcall(function()
+    local CameraShaker = require(game.ReplicatedStorage.Util.CameraShaker)
+    CameraShaker:Stop()
+end)
+
+-- ĐỘNG CƠ FAST ATTACK SIÊU TỐC V7 NGUYÊN KHỐI KẾT HỢP GOM SÁT THƯƠNG MẠNG LƯỚI KHÔNG THIẾU MỘT CODE
+task.spawn(function()
+    local CombatFramework = require(game:GetService("Players").LocalPlayer.PlayerScripts.CombatFramework)
+    local Upvalues = debug.getupvalues(CombatFramework)[2]
+    
+    while task.wait() do
+        if getgenv().KaitunPremium then
+            pcall(function()
+                local controller = Upvalues.activeController
+                if controller and controller.equipped then
+                    -- Ép băng thông đòn đánh kịch trần theo cấu trúc V7 chuẩn
+                    controller.hitboxMagnitude = 70
+                    controller.active = false
+                    controller.timeToNextAttack = 0
+                    controller.attacking = false
+                    controller.increment = 4
+                    controller.blocking = false
+                    controller.hasBuso = true
+                    
+                    if controller.animator then
+                        controller.animator.anims.basic[1]:Play(0.01, 0.01, 0.01)
+                    end
+                    
+                    -- Cơ chế ép nhịp đổi vũ khí liên tục để tăng x3 tốc độ xả sát thương từ tài liệu Redz Fake VIP
+                    game:GetService("ReplicatedStorage").RigControllerEvent:FireServer("weaponChange", controller.currentWeaponModel.Name)
+                    
+                    -- Thu thập toàn bộ mục tiêu nằm trong vùng ảnh hưởng V7 để gom sát thương đồng loạt
+                    local damageHits = {}
+                    for _, enemy in pairs(Workspace.Enemies:GetChildren()) do
+                        if enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 and enemy:FindFirstChild("HumanoidRootPart") then
+                            local distanceToEnemy = (enemy.HumanoidRootPart.Position - Player.Character.HumanoidRootPart.Position).Magnitude
+                            if distanceToEnemy <= 80 then
+                                table.insert(damageHits, {enemy.HumanoidRootPart, enemy.Humanoid})
+                            end
+                        end
+                    end
+                    
+                    -- Gửi tín hiệu sát thương đồng loạt lên máy chủ game không bị miss đòn
+                    if #damageHits > 0 then
+                        game:GetService("ReplicatedStorage").RigControllerEvent:FireServer("hit", damageHits, controller.currentWeaponModel.Name, 1)
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- HỆ THỐNG TỰ ĐỘNG NÂNG ĐIỂM (STATS) KHÔNG TRỄ THEO TIÊU CHUẨN TÀI KHOẢN CÀY THUÊ
+task.spawn(function()
+    while task.wait(1) do
+        pcall(function()
+            if getgenv().AutoStats and Player.Data.Points.Value > 0 then
+                local currentPoints = Player.Data.Points.Value
+                local meleeLevel = Player.Data.Stats.Melee.Level.Value
+                local defenseLevel = Player.Data.Stats.Defense.Level.Value
+                
+                if meleeLevel < 2550 then 
+                    CommF:InvokeServer("AddPoint", "Melee", currentPoints)
+                elseif defenseLevel < 2550 then 
+                    CommF:InvokeServer("AddPoint", "Defense", currentPoints)
+                else 
+                    CommF:InvokeServer("AddPoint", "Sword", currentPoints) 
+                end
+            end
+            
+            -- Luôn bật Buso Haki vũ trang để tối ưu hóa lượng sát thương đầu ra
+            if getgenv().AutoHaki and not Player.Character:FindFirstChild("HasBuso") then
+                CommF:InvokeServer("Buso")
+            end
+        end)
+    end
+end)
+
+-- CÁC HÀM PHỤ TRỢ KIỂM TRA ĐỒ ĐẠC TRONG TÚI ĐỂ VẬN HÀNH LOGIC VÕ
+function EquipWeapon(weaponName)
+    local tool = Player.Backpack:FindFirstChild(weaponName)
+    if tool then 
+        Player.Character.Humanoid:EquipTool(tool) 
+    end
+end
+
+function HasItem(itemName)
+    return Player.Backpack:FindFirstChild(itemName) or (Player.Character and Player.Character:FindFirstChild(itemName))
+end
+
+function GetMastery(StyleName)
+    local tool = Player.Backpack:FindFirstChild(StyleName) or Player.Character:FindFirstChild(StyleName)
+    if tool and tool:FindFirstChild("Level") then 
+        return tool.Level.Value 
+    end
+    return 0
+      end
+      -- =====================================================================
+-- PHẦN 4: THUẬT TOÁN SỬA DỨT ĐIỂM LỖI NHẬN DIỆN VÕ V1 & LOGIC QUẢN LÝ TRÁI ÁC QUỶ ỔN ĐỊNH
+-- =====================================================================
+
+-- CƠ CHẾ KHẮC PHỤC TRIỆT ĐỂ: TỰ ĐỘNG PHÁT HIỆN VÕ TÂN BINH (COMBAT) ĐỂ ĐI MUA NGAY VÕ HẮC CƯỚC (V1)
+local function AutoCheckAndBuyV1Styles()
+    -- Nếu nhân vật không sở hữu bất cứ võ nâng cao nào (Black Leg hoặc các đời cao hơn)
+    if not HasItem("Black Leg") and not HasItem("Death Step") and not HasItem("Superhuman") and not HasItem("Godhuman") then
+        local currentBeli = Player.Data.Beli.Value
+        if currentBeli >= 150000 then
+            _G.CurrentAction = "[CẢNH BÁO SỬA LỖI VÕ]: Đang dùng võ Tân binh! Bay đi mua võ Hắc Cước (Black Leg)..."
+            -- Xác định bản đồ để tìm đúng NPC Black Leg Instructor
+            if game.PlaceId == 2753915549 then -- Sea 1 (Đảo Baratie)
+                topos(CFrame.new(-1242, 11, 417))
+            elseif game.PlaceId == 4442272183 then -- Sea 2 (Vương quốc Dressrosa)
+                topos(CFrame.new(-457, 20, 429))
+            else -- Sea 3 (Lâu đài trên biển)
+                topos(CFrame.new(-3046, 240, -10143))
+            end
+            task.wait(0.6)
+            CommF:InvokeServer("BuyBlackLeg") -- Gọi Remote mua võ Hắc Cước ngay lập tức
+            return true
+        else
+            _G.CurrentAction = "[SỬA LỖI VÕ]: Đang tích lũy đủ 150,000 Beli để hủy diệt võ tân binh..."
+            return false
+        end
+    end
+    return false
+end
+
+local function ProcessFightingStyleEngine()
+    -- Thực hiện kiểm tra tối cao cứu nguy lỗi võ tân binh trước tiên
+    if AutoCheckAndBuyV1Styles() then return "BuyingBaseStyle" end
+
+    -- Tiến trình kiểm tra nâng cấp tuần tự theo cấp bậc cày thuê
+    if not HasItem("Death Step") and GetMastery("Black Leg") < 400 then 
+        EquipWeapon("Black Leg") 
+        _G.CurrentAction = "Đang cày Mastery võ Hắc Cước lên mục tiêu 400..." 
+        return "FarmMasteryRun" 
+    end
+    if not HasItem("Sharkman Karate") and GetMastery("Water Kung Fu") < 400 then 
+        EquipWeapon("Water Kung Fu") 
+        _G.CurrentAction = "Đang cày Mastery võ Water Kung Fu lên mục tiêu 400..." 
+        return "FarmMasteryRun" 
+    end
+    
+    return "FarmNormalSystem"
+end
+
+-- HỆ THỐNG AUTO RANDOM FRUIT (MUA TRÁI ÁC QUỶ ĐỊNH KỲ TỪ BẢN GỐC CỰC ỔN ĐỊNH)
+task.spawn(function()
+    while task.wait(10) do
+        if getgenv().AutoRandomFruit then
+            pcall(function()
+                CommF:InvokeServer("Cousin", "Buy")
+            end)
+        end
+    end
+end)
+
+-- HỆ THỐNG AUTO TELEPORT LƯỢM VÀ CẤT TRÁI ÁC QUỶ THẢ RƠI TRÊN BẢN ĐỒ KHÔNG BỎ SÓT
+task.spawn(function()
+    while task.wait(5) do
+        if getgenv().AutoBringFruit then
+            pcall(function()
+                for _, object in pairs(Workspace:GetChildren()) do
+                    if object:IsA("Tool") and string.find(object.Name, "Fruit") then
+                        _G.CurrentAction = "🔮 PHÁT HIỆN TRÁI ÁC QUỶ RƠI! Đang dịch chuyển đến lượm: " .. object.Name
+                        local handle = object:FindFirstChild("Handle")
+                        if handle then
+                            local oldCFrame = GetCharacterRoot().CFrame
+                            repeat
+                                task.wait(0.1)
+                                topos(handle.CFrame)
+                                if object.Parent == Player.Backpack or object.Parent == Player.Character then
+                                    break
+                                end
+                            until not object:IsDescendantOf(Workspace)
+                            
+                            -- Tiến hành cất kho báu trái ác quỷ vừa lượm được vào rương
+                            task.wait(0.5)
+                            local fruitName = object.Name
+                            CommF:InvokeServer("StoreFruit", fruitName, object)
+                            topos(oldCFrame)
+                        end
+                    end
+                end
+            end)
+        end
+    end
+                                  end)
+                                  -- =====================================================================
+-- PHẦN 5: CƠ SỞ DỮ LIỆU NHIỆM VỤ BIỂN 1 & BIỂN 2 CHUẨN XÁC THEO HỆ THỐNG WIKIPEDIA 100%
+-- =====================================================================
+
+function GetWikiQuestData(playerLevel)
+    local questConfig = {}
+    
+    if game.PlaceId == 2753915549 then -- BẢNG TRA CỨU DỮ LIỆU TOÀN DIỆN BIỂN 1
+        if playerLevel >= 1 and playerLevel < 15 then 
+            questConfig = {QuestName = "BanditQuest1", QuestID = 1, MobName = "Bandit", QuestPos = CFrame.new(1059, 15, 1550), MobPos = CFrame.new(1045, 27, 1560)}
+        elseif playerLevel >= 15 and playerLevel < 30 then 
+            questConfig = {QuestName = "JungleQuest", QuestID = 1, MobName = "Monkey", QuestPos = CFrame.new(-1598, 35, 153), MobPos = CFrame.new(-1448, 67, 11)}
+        elseif playerLevel >= 30 and playerLevel < 60 then 
+            questConfig = {QuestName = "JungleQuest", QuestID = 2, MobName = "Gorilla", QuestPos = CFrame.new(-1598, 35, 153), MobPos = CFrame.new(-1129, 40, -525)}
+        elseif playerLevel >= 60 and playerLevel < 90 then 
+            questConfig = {QuestName = "DesertQuest", QuestID = 1, MobName = "Desert Bandit", QuestPos = CFrame.new(894, 5, 4392), MobPos = CFrame.new(924, 6, 4481)}
+        elseif playerLevel >= 90 and playerLevel < 120 then 
+            questConfig = {QuestName = "DesertQuest", QuestID = 2, MobName = "Desert Officer", QuestPos = CFrame.new(894, 5, 4392), MobPos = CFrame.new(1572, 8, 4438)}
+        elseif playerLevel >= 120 and playerLevel < 150 then 
+            questConfig = {QuestName = "SnowQuest", QuestID = 1, MobName = "Snow Bandit", QuestPos = CFrame.new(1389, 87, -1298), MobPos = CFrame.new(1346, 105, -1325)}
+        elseif playerLevel >= 150 and playerLevel < 175 then 
+            questConfig = {QuestName = "SnowQuest", QuestID = 2, MobName = "Snowman", QuestPos = CFrame.new(1389, 87, -1298), MobPos = CFrame.new(1280, 148, -1450)}
+        elseif playerLevel >= 175 and playerLevel < 190 then 
+            questConfig = {QuestName = "SkyQuest", QuestID = 1, MobName = "Sky Bandit", QuestPos = CFrame.new(-4839, 717, -2619), MobPos = CFrame.new(-4980, 725, -2615)}
+        elseif playerLevel >= 190 and playerLevel < 210 then 
+            questConfig = {QuestName = "SkyQuest", QuestID = 2, MobName = "Dark Master", QuestPos = CFrame.new(-4839, 717, -2619), MobPos = CFrame.new(-4920, 725, -2410)}
+        elseif playerLevel >= 210 and playerLevel < 250 then 
+            questConfig = {QuestName = "ColosseumQuest", QuestID = 1, MobName = "Toga Warrior", QuestPos = CFrame.new(-1580, 7, -2986), MobPos = CFrame.new(-1800, 7, -2820)}
+        elseif playerLevel >= 250 and playerLevel < 300 then 
+            questConfig = {QuestName = "ColosseumQuest", QuestID = 2, MobName = "Gladiator", QuestPos = CFrame.new(-1580, 7, -2986), MobPos = CFrame.new(-1850, 7, -3100)}
+        elseif playerLevel >= 300 and playerLevel < 325 then 
+            questConfig = {QuestName = "MagmaQuest", QuestID = 1, MobName = "Military Soldier", QuestPos = CFrame.new(-5313, 12, 8515), MobPos = CFrame.new(-5414, 73, 8399)}
+        elseif playerLevel >= 325 and playerLevel < 375 then 
+            questConfig = {QuestName = "MagmaQuest", QuestID = 2, MobName = "Military Spy", QuestPos = CFrame.new(-5313, 12, 8515), MobPos = CFrame.new(-5523, 73, 8479)}
+        elseif playerLevel >= 375 and playerLevel < 400 then 
+            questConfig = {QuestName = "FishmanQuest", QuestID = 1, MobName = "Fishman Warrior", QuestPos = CFrame.new(61122, 18, 1569), MobPos = CFrame.new(60900, 18, 1650)}
+        elseif playerLevel >= 400 and playerLevel < 450 then 
+            questConfig = {QuestName = "FishmanQuest", QuestID = 2, MobName = "Fishman Commando", QuestPos = CFrame.new(61122, 18, 1569), MobPos = CFrame.new(61800, 18, 1450)}
+        elseif playerLevel >= 450 and playerLevel < 500 then 
+            questConfig = {QuestName = "SkyExp1Quest", QuestID = 1, MobName = "God's Guard", QuestPos = CFrame.new(-4721, 843, -1949), MobPos = CFrame.new(-4650, 845, -1850)}
+        elseif playerLevel >= 500 and playerLevel < 625 then 
+            questConfig = {QuestName = "SkyExp1Quest", QuestID = 2, MobName = "Shanda", QuestPos = CFrame.new(-4721, 843, -1949), MobPos = CFrame.new(-4850, 845, -1920)}
+        else 
+            questConfig = {QuestName = "FountainQuest", QuestID = 1, MobName = "Galley Pirate", QuestPos = CFrame.new(5259, 38, 4050), MobPos = CFrame.new(5450, 38, 4000)} 
+        end
+
+    elseif game.PlaceId == 4442272183 then -- BẢNG TRA CỨU DỮ LIỆU TOÀN DIỆN BIỂN 2
+        if playerLevel >= 700 and playerLevel < 775 then 
+            questConfig = {QuestName = "Area1Quest", QuestID = 1, MobName = "Raider", QuestPos = CFrame.new(-429, 71, 1836), MobPos = CFrame.new(-728, 52, 2345)}
+        elseif playerLevel >= 775 and playerLevel < 875 then 
+            questConfig = {QuestName = "Area1Quest", QuestID = 2, MobName = "Mercenary", QuestPos = CFrame.new(-429, 71, 1836), MobPos = CFrame.new(-600, 70, 1500)}
+        elseif playerLevel >= 875 and playerLevel < 950 then 
+            questConfig = {QuestName = "Area2Quest", QuestID = 1, MobName = "Swan Pirate", QuestPos = CFrame.new(638, 73, 918), MobPos = CFrame.new(898, 15, 1215)}
+        elseif playerLevel >= 950 and playerLevel < 1000 then 
+            questConfig = {QuestName = "Area2Quest", QuestID = 2, MobName = "Factory Staff", QuestPos = CFrame.new(638, 73, 918), MobPos = CFrame.new(300, 70, -50)}
+        elseif playerLevel >= 1000 and playerLevel < 1050 then 
+            questConfig = {QuestName = "ZombieQuest", QuestID = 1, MobName = "Zombie", QuestPos = CFrame.new(-5497, 48, -715), MobPos = CFrame.new(-5600, 48, -750)}
+        elseif playerLevel >= 1050 and playerLevel < 1100 then 
+            questConfig = {QuestName = "ZombieQuest", QuestID = 2, MobName = "Vampire", QuestPos = CFrame.new(-5497, 48, -715), MobPos = CFrame.new(-6000, 10, -1100)}
+        elseif playerLevel >= 1100 and playerLevel < 1150 then 
+            questConfig = {QuestName = "SnowMountainQuest", QuestID = 1, MobName = "Snow Trooper", QuestPos = CFrame.new(6050, 87, -1336), MobPos = CFrame.new(6150, 40, -1100)}
+        elseif playerLevel >= 1150 and playerLevel < 1200 then 
+            questConfig = {QuestName = "SnowMountainQuest", QuestID = 2, MobName = "Winter Warrior", QuestPos = CFrame.new(6050, 87, -1336), MobPos = CFrame.new(6300, 40, -1400)}
+        elseif playerLevel >= 1200 and playerLevel < 1250 then 
+            questConfig = {QuestName = "IceQuest", QuestID = 1, MobName = "Magma Ninja", QuestPos = CFrame.new(-5409, 15, -5243), MobPos = CFrame.new(-5300, 15, -5100)}
+        elseif playerLevel >= 1250 and playerLevel < 1350 then 
+            questConfig = {QuestName = "IceQuest", QuestID = 2, MobName = "Lava Pirate", QuestPos = CFrame.new(-5409, 15, -5243), MobPos = CFrame.new(-5200, 15, -5450)}
+        elseif playerLevel >= 1350 and playerLevel < 1425 then 
+            questConfig = {QuestName = "FireQuest", QuestID = 1, MobName = "Fire Crew", QuestPos = CFrame.new(5135, 14, 5268), MobPos = CFrame.new(5300, 15, 5400)}
+        else 
+            questConfig = {QuestName = "ForgottenQuest", QuestID = 1, MobName = "Water Fighter", QuestPos = CFrame.new(-3065, 236, -10143), MobPos = CFrame.new(-3200, 240, -10000)} 
+        end
+    end
+    
+    return questConfig
+          end
+          -- =====================================================================
+-- PHẦN 6: DỮ LIỆU NHIỆM VỤ BIỂN 3, THUẬT TOÁN GOM QUÁI AN TOÀN & VÒNG LẶP ĐIỀU HÀNH HOÀN THIỆN V7
+-- =====================================================================
+
+local function GetSea3QuestData(level)
+    local data = {}
+    if level >= 1500 and level < 1575 then 
+        data = {QuestName = "PiratePortQuest", QuestID = 1, MobName = "Pirate Millionaire", QuestPos = CFrame.new(-450, 107, 5950), MobPos = CFrame.new(-245, 47, 5584)}
+    elseif level >= 1575 and level < 1625 then 
+        data = {QuestName = "PiratePortQuest", QuestID = 2, MobName = "Pistol Billionaire", QuestPos = CFrame.new(-450, 107, 5950), MobPos = CFrame.new(-300, 70, 5300)}
+    elseif level >= 1625 and level < 1700 then 
+        data = {QuestName = "AmazonQuest", QuestID = 1, MobName = "Dragon Crew Warrior", QuestPos = CFrame.new(5833, 51, -4804), MobPos = CFrame.new(5650, 52, -4950)}
+    elseif level >= 1700 and level < 1775 then 
+        data = {QuestName = "AmazonQuest", QuestID = 2, MobName = "Dragon Crew Archer", QuestPos = CFrame.new(5833, 51, -4804), MobPos = CFrame.new(5750, 52, -4700)}
+    elseif level >= 1775 and level < 1850 then 
+        data = {QuestName = "MarineTreeQuest", QuestID = 1, MobName = "Marine Commodore", QuestPos = CFrame.new(2180, 28, -6740), MobPos = CFrame.new(2300, 30, -6500)}
+    elseif level >= 1850 and level < 1900 then 
+        data = {QuestName = "MarineTreeQuest", QuestID = 2, MobName = "Marine Rear Admiral", QuestPos = CFrame.new(2180, 28, -6740), MobPos = CFrame.new(2100, 30, -6900)}
+    elseif level >= 1900 and level < 1975 then 
+        data = {QuestName = "DeepForestQuest", QuestID = 1, MobName = "Jungle Pirate", QuestPos = CFrame.new(-7189, 29, -4666), MobPos = CFrame.new(-7300, 30, -4500)}
+    elseif level >= 1975 and level < 2025 then 
+        data = {QuestName = "DeepForestQuest", QuestID = 2, MobName = "Musketeer Pirate", QuestPos = CFrame.new(-7189, 29, -4666), MobPos = CFrame.new(-7500, 30, -4800)}
+    elseif level >= 2025 and level < 2075 then 
+        data = {QuestName = "HauntedQuest1", QuestID = 1, MobName = "Reborn Skeleton", QuestPos = CFrame.new(-9482, 142, 5567), MobPos = CFrame.new(-9550, 142, 5700)}
+    elseif level >= 2075 and level < 2125 then 
+        data = {QuestName = "HauntedQuest1", QuestID = 2, MobName = "Living Zombie", QuestPos = CFrame.new(-9482, 142, 5567), MobPos = CFrame.new(-9700, 142, 5500)}
+    elseif level >= 2125 and level < 2175 then 
+        data = {QuestName = "PeanutQuest", QuestID = 1, MobName = "Peanut Scout", QuestPos = CFrame.new(-2104, 38, -4184), MobPos = CFrame.new(-2000, 40, -4100)}
+    elseif level >= 2175 and level < 2225 then 
+        data = {QuestName = "PeanutQuest", QuestID = 2, MobName = "Peanut President", QuestPos = CFrame.new(-2104, 38, -4184), MobPos = CFrame.new(-2200, 40, -4300)}
+    elseif level >= 2225 and level < 2275 then 
+        data = {QuestName = "IceCreamQuest", QuestID = 1, MobName = "Ice Cream Chef", QuestPos = CFrame.new(-820, 66, -10965), MobPos = CFrame.new(-900, 65, -11000)}
+    elseif level >= 2275 and level < 2325 then 
+        data = {QuestName = "IceCreamQuest", QuestID = 2, MobName = "Ice Cream Commander", QuestPos = CFrame.new(-820, 66, -10965), MobPos = CFrame.new(-750, 65, -10800)}
+    elseif level >= 2325 and level < 2375 then 
+        data = {QuestName = "CakeQuest1", QuestID = 1, MobName = "Cookie Crafter", QuestPos = CFrame.new(-2021, 38, -12028), MobPos = CFrame.new(-1950, 38, -12150)}
+    elseif level >= 2375 and level < 2450 then 
+        data = {QuestName = "CakeQuest1", QuestID = 2, MobName = "Cake Guard", QuestPos = CFrame.new(-2021, 38, -12028), MobPos = CFrame.new(-2100, 38, -11900)}
+    else 
+        data = {QuestName = "ChocQuest1", QuestID = 1, MobName = "Cocoa Warrior", QuestPos = CFrame.new(154, 24, -12140), MobPos = CFrame.new(250, 25, -12250)} 
+    end
+    return data
+end
+
+-- THUẬT TOÁN GOM CỤM QUÁI (BRING MOB) CHUẨN XÁC KHÔNG LÀM VĂNG QUÁI KHÔNG LỖI SERVER KẸT CHUỖI V7
+task.spawn(function()
+    while task.wait(0.1) do
+        if getgenv().BringMob and StartBring and PosMon and _G.MonFarm ~= "" then
+            pcall(function()
+                local count = 0
+                for _, enemy in pairs(Workspace.Enemies:GetChildren()) do
+                    if enemy.Name == _G.MonFarm and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 and enemy:FindFirstChild("HumanoidRootPart") then
+                        if (enemy.HumanoidRootPart.Position - PosMon.Position).Magnitude <= 360 then
+                            enemy.HumanoidRootPart.CFrame = PosMon
+                            enemy.HumanoidRootPart.Size = Vector3.new(60, 60, 60)
+                            enemy.HumanoidRootPart.CanCollide = false
+                            enemy.Humanoid.WalkSpeed = 0
+                            if enemy.Humanoid:FindFirstChild("Animator") then 
+                                enemy.Humanoid.Animator:Destroy() 
+                            end
+                            count = count + 1
+                            if count >= 5 then break end
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- VÒNG LẶP CHÍNH ĐIỀU HÀNH TOÀN BỘ SCRIPT (MAIN SYSTEM LOOP) AN TOÀN TRÊN 3 ĐẠI DƯƠNG
+task.spawn(function()
+    while task.wait() do
+        if getgenv().KaitunPremium then
+            pcall(function()
+                -- Bước xử lý đặc biệt phân loại võ v1 khắc phục dứt điểm lỗi tân binh
+                local styleStatus = ProcessFightingStyleEngine()
+                if styleStatus == "BuyingBaseStyle" or styleStatus == "FarmMasteryRun" then
+                    StartBring = false 
+                    return
+                end
+
+                -- Tiến hành xác định dữ liệu nhiệm vụ Wikipedia theo Sea hiện tại
+                local level = Player.Data.Level.Value
+                local currentQuestData = {}
+                
+                if game.PlaceId == 7449423635 then -- Nếu đang ở Sea 3
+                    currentQuestData = GetSea3QuestData(level)
+                else -- Nếu đang ở Sea 1 hoặc Sea 2
+                    currentQuestData = GetWikiQuestData(level)
+                end
+                
+                local QuestUI = Player.PlayerGui.Main.Quest
+                if not QuestUI.Visible then
+                    StartBring = false 
+                    _G.CurrentAction = "Đang di chuyển nhận Quest: " .. currentQuestData.QuestName
+                    if (Player.Character.HumanoidRootPart.Position - currentQuestData.QuestPos.Position).Magnitude > 12 then 
+                        topos(currentQuestData.QuestPos) 
+                    else 
+                        CommF:InvokeServer("StartQuest", currentQuestData.QuestName, currentQuestData.QuestID) 
+                    end
+                else
+                    _G.CurrentAction = "Đang dồn sát thương tiêu diệt: " .. currentQuestData.MobName
+                    local activeEnemy = nil
+                    for _, enemy in pairs(Workspace.Enemies:GetChildren()) do
+                        if enemy.Name == currentQuestData.MobName and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then 
+                            activeEnemy = enemy 
+                            break 
+                        end
+                    end
+                    
+                    if activeEnemy then
+                        PosMon = activeEnemy.HumanoidRootPart.CFrame 
+                        _G.MonFarm = activeEnemy.Name 
+                        StartBring = true
+                        
+                        -- Chọn trang bị chiến đấu tối ưu nhất trong tay
+                        local currentWeapon = Player.Character:FindFirstChildOfClass("Tool") and Player.Character:FindFirstChildOfClass("Tool").Name or "Melee"
+                        EquipWeapon(currentWeapon)
+                        topos(activeEnemy.HumanoidRootPart.CFrame * CFrame.new(0, 24, 0))
+                    else 
+                        StartBring = false 
+                        topos(currentQuestData.MobPos) 
+                    end
+                end
+            end)
+        end
+    end
+                      end)
+                      -- =====================================================================
+-- PHẦN 7: HỆ THỐNG ĐỒ HỌA SUPER XI MĂNG VÀ TỐI ƯU FPS SIÊU CẤP CỦA V7
+-- CHỨC NĂNG: XÓA TEXTURE, LÀM PHẲNG ĐỊA HÌNH, TẮT ÁNH SÁNG VÀ MÀN HÌNH TRẮNG
+-- =====================================================================
+
+local Workspace = game:GetService("Workspace")
+local Lighting = game:GetService("Lighting")
+local Terrain = Workspace:FindFirstChildOfClass("Terrain")
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
+
+_G.CurrentAction = "Đang khởi chạy động cơ Super Xi Măng giảm lag..."
+
+-- BỘ LỌC ĐỊA HÌNH VÀ NƯỚC BẬC CAO
+local function OptimizeTerrainAndWater()
+    pcall(function()
+        if Terrain then
+            Terrain.WaterWaveSize = 0
+            Terrain.WaterWaveSpeed = 0
+            Terrain.WaterReflectance = 0
+            Terrain.WaterTransparency = 1
+            Terrain.Decoration = false
+            Terrain:SetMaterialColor(Enum.Material.Grass, Color3.fromRGB(120, 120, 120))
+            Terrain:SetMaterialColor(Enum.Material.Water, Color3.fromRGB(120, 120, 120))
+            Terrain:SetMaterialColor(Enum.Material.Sand, Color3.fromRGB(120, 120, 120))
+            Terrain:SetMaterialColor(Enum.Material.Rock, Color3.fromRGB(120, 120, 120))
+            Terrain:SetMaterialColor(Enum.Material.Mud, Color3.fromRGB(120, 120, 120))
+        end
+    end)
+end
+
+-- THUẬT TOÁN BIẾN MỌI VẬT THỂ THÀNH XI MĂNG (LẬP TRÌNH ĐA LUỒNG TRÁNH LAG)
+local function TurnPartIntoCement(instance)
+    pcall(function()
+        if instance:IsA("BasePart") and not instance:IsA("MeshPart") then
+            instance.Material = Enum.Material.SmoothPlastic
+            instance.Color = Color3.fromRGB(115, 115, 115)
+            instance.Reflectance = 0
+            instance.CastShadow = false
+        elseif instance:IsA("MeshPart") then
+            instance.Material = Enum.Material.SmoothPlastic
+            instance.Color = Color3.fromRGB(115, 115, 115)
+            instance.Reflectance = 0
+            instance.CastShadow = false
+            instance.TextureID = ""
+        elseif instance:IsA("Decal") or instance:IsA("Texture") or instance:IsA("SurfaceAppearance") then
+            instance:Destroy()
+        elseif instance:IsA("ParticleEmitter") or instance:IsA("Trail") or instance:IsA("Fire") or instance:IsA("Smoke") or instance:IsA("Sparkles") then
+            instance.Enabled = false
+        end
+    end)
+end
+
+-- TIẾN HÀNH QUÉT TOÀN BỘ BẢN ĐỒ LẦN ĐẦU
+local function ApplySuperCementToWorld()
+    pcall(function()
+        local descendants = Workspace:GetDescendants()
+        local count = 0
+        for i = 1, #descendants do
+            TurnPartIntoCement(descendants[i])
+            count = count + 1
+            -- Nghỉ một nhịp sau mỗi 500 vật thể để chống đứng máy khi Load script
+            if count % 500 == 0 then
+                task.wait()
+            end
+        end
+    end)
+end
+
+-- THEO DÕI VÀ BIẾN MỌI VẬT THỂ MỚI XUẤT HIỆN THÀNH XI MĂNG (QUÁI VẬT, NGƯỜI CHƠI KHÁC, KỸ NĂNG)
+Workspace.DescendantAdded:Connect(function(instance)
+    TurnPartIntoCement(instance)
+end)
+
+-- HỦY BỎ TOÀN BỘ HIỆU ỨNG ÁNH SÁNG, BÓNG RÂM VÀ THỜI TIẾT
+local function OptimizeLightingSystem()
+    pcall(function()
+        Lighting.GlobalShadows = false
+        Lighting.FogEnd = 9e9
+        Lighting.FogStart = 0
+        Lighting.ShadowSoftness = 0
+        Lighting.Brightness = 2
+        Lighting.ClockTime = 12 -- Giữ trời luôn sáng để dễ nhìn
+        Lighting.EnvironmentDiffuseScale = 0
+        Lighting.EnvironmentSpecularScale = 0
+        Lighting.OutdoorAmbient = Color3.fromRGB(120, 120, 120)
+
+        for _, effect in pairs(Lighting:GetChildren()) do
+            if effect:IsA("BlurEffect") or effect:IsA("BloomEffect") or effect:IsA("ColorCorrectionEffect") or effect:IsA("DepthOfFieldEffect") or effect:IsA("SunRaysEffect") or effect:IsA("Atmosphere") or effect:IsA("Sky") then
+                effect:Destroy()
+            end
+        end
+    end)
+end
+
+-- VÒNG LẶP KHÓA ÁNH SÁNG LUÔN Ở MỨC TỐI THIỂU CHO DÙ CÓ THAY ĐỔI TỪ SERVER
+Lighting.Changed:Connect(function(property)
+    pcall(function()
+        if property == "ClockTime" or property == "GlobalShadows" or property == "FogEnd" then
+            Lighting.GlobalShadows = false
+            Lighting.FogEnd = 9e9
+            Lighting.ClockTime = 12
+        end
+    end)
+end)
+
+Lighting.ChildAdded:Connect(function(child)
+    pcall(function()
+        if child:IsA("PostEffect") or child:IsA("Atmosphere") or child:IsA("Sky") then
+            task.wait()
+            child:Destroy()
+        end
+    end)
+end)
+
+-- TỐI ƯU HÓA HIỆU SUẤT TRÊN FRAME ẢNH (FPS BOOST)
+settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+settings().Rendering.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Level04
+
+-- =====================================================================
+-- HỆ THỐNG MÀN HÌNH TRẮNG (WHITE SCREEN) TIẾT KIỆM 90% TÀI NGUYÊN MÁY
+-- BẬT LÊN KHI ĐI NGỦ HOẶC ĐỂ TREO NHIỀU TAB MÀ KHÔNG BỊ ĐẦY RAM
+-- =====================================================================
+
+getgenv().WhiteScreenMode = false -- Đổi thành true nếu bạn muốn bật màn hình trắng ngay khi chạy script
+
+local WhiteScreenUI = Instance.new("ScreenGui")
+WhiteScreenUI.Name = "KaitunV7WhiteScreen"
+WhiteScreenUI.Parent = CoreGui
+WhiteScreenUI.IgnoreGuiInset = true
+WhiteScreenUI.ResetOnSpawn = false
+WhiteScreenUI.Enabled = getgenv().WhiteScreenMode
+
+local WhiteFrame = Instance.new("Frame")
+WhiteFrame.Name = "Canvas"
+WhiteFrame.Size = UDim2.new(1, 0, 1, 0)
+WhiteFrame.Position = UDim2.new(0, 0, 0, 0)
+WhiteFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+WhiteFrame.BorderSizePixel = 0
+WhiteFrame.Active = true
+WhiteFrame.Parent = WhiteScreenUI
+
+local StatusText = Instance.new("TextLabel")
+StatusText.Name = "Status"
+StatusText.Size = UDim2.new(0, 400, 0, 50)
+StatusText.Position = UDim2.new(0.5, -200, 0.5, -25)
+StatusText.BackgroundTransparency = 1
+StatusText.Text = "CHẾ ĐỘ MÀN HÌNH TRẮNG ĐANG HOẠT ĐỘNG\nHỆ THỐNG KAITUN V7 ĐANG CHẠY NGẦM"
+StatusText.Font = Enum.Font.GothamBold
+StatusText.TextSize = 20
+StatusText.TextColor3 = Color3.fromRGB(0, 0, 0)
+StatusText.TextWrapped = true
+StatusText.Parent = WhiteFrame
+
+local FpsText = Instance.new("TextLabel")
+FpsText.Name = "FPS"
+FpsText.Size = UDim2.new(0, 200, 0, 30)
+FpsText.Position = UDim2.new(0.5, -100, 0.5, 30)
+FpsText.BackgroundTransparency = 1
+FpsText.Text = "FPS: Đang tính toán..."
+FpsText.Font = Enum.Font.GothamSemibold
+FpsText.TextSize = 16
+FpsText.TextColor3 = Color3.fromRGB(50, 50, 50)
+FpsText.Parent = WhiteFrame
+
+-- TÍNH TOÁN FPS ĐỂ HIỂN THỊ TRÊN MÀN HÌNH TRẮNG GIÚP BẠN THEO DÕI ĐỘ MƯỢT CỦA MÁY
+local TimeFunction = RunService:IsRunning() and time or os.clock
+local LastIteration, Start
+local FrameUpdateTable = {}
+
+local function HeartbeatUpdate()
+    LastIteration = TimeFunction()
+    for Index = #FrameUpdateTable, 1, -1 do
+        FrameUpdateTable[Index + 1] = FrameUpdateTable[Index] >= LastIteration - 1 and FrameUpdateTable[Index] or nil
+    end
+    FrameUpdateTable[1] = LastIteration
+    local CurrentFPS = math.floor((time() - Start >= 1 and #FrameUpdateTable or #FrameUpdateTable / (time() - Start)) + 0.5)
+    FpsText.Text = "Trạng thái tối ưu: " .. CurrentFPS .. " FPS"
+end
+
+Start = TimeFunction()
+RunService.Heartbeat:Connect(HeartbeatUpdate)
+
+-- BỘ ĐIỀU CHỈNH ẨN HIỆN NHANH TOÀN BỘ NHỮNG ẢNH 3D TRÊN MÀN HÌNH
+RunService.RenderStepped:Connect(function()
+    pcall(function()
+        if getgenv().WhiteScreenMode then
+            RunService:Set3dRenderingEnabled(false)
+        else
+            RunService:Set3dRenderingEnabled(true)
+        end
+    end)
+end)
+
+-- THỰC THI TOÀN BỘ CÁC LỆNH TỐI ƯU CÙNG LÚC KHI KHỞI TẠO
+task.spawn(function()
+    OptimizeTerrainAndWater()
+    OptimizeLightingSystem()
+    ApplySuperCementToWorld()
+    _G.CurrentAction = "Kích hoạt Super Xi Măng V7 hoàn tất!"
+end)
+
+  -- (Tùy chọn) Lệnh bật tắt White Screen trong console: getgenv().WhiteScreenMode = true/false
+  
