@@ -1,0 +1,467 @@
+-- =====================================================================
+-- PHẦN 1: KHỞI TẠO CẤU TRÚC HỆ THỐNG, TỰ CHỌN PHE & CƠ SỞ DỮ LIỆU SEA 1
+-- TIÊU CHUẨN: CHỐNG LỖI LUỒNG, KHÔNG RÚT GỌN CODE, CHẠY ĐỘC LẬP
+-- =====================================================================
+
+repeat task.wait() until game:IsLoaded()
+repeat task.wait() until game:GetService("Players").LocalPlayer
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local Workspace = game:GetService("Workspace")
+local LocalPlayer = Players.LocalPlayer
+
+-- CẤU HÌNH TOÀN CỤC (GLOBAL CONFIGURATION)
+getgenv().KaitunConfig = {
+    AutoFarm = true,
+    SelectWeapon = "Melee",
+    BringMob = true,
+    FastAttack = true,
+    BypassTeleport = true,
+    TweenSpeed = 325
+}
+
+-- LOẠI BỎ HOÀN TOÀN CÁC UI TRẠNG THÁI CŨ BỊ LỖI ĐỂ TRÁNH NGHẼN LUỒNG LOGIC
+local CoreGui = game:GetService("CoreGui")
+if CoreGui:FindFirstChild("KaitunV7WhiteScreen") then
+    CoreGui.KaitunV7WhiteScreen:Destroy()
+end
+if LocalPlayer.PlayerGui:FindFirstChild("StatusUI") then
+    LocalPlayer.PlayerGui.StatusUI:Destroy()
+end
+
+-- LOGIC TỰ ĐỘNG CHỌN PHE HẢI TẶC (KẾ THỪA VÀ TỐI ƯU TỪ REDZ HUB V7)
+local function AutoSelectPiratesTeam()
+    local joinTeamRemote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+    local success, _ = pcall(function()
+        if LocalPlayer.Team == nil or LocalPlayer.Team.Name == "Choosing" then
+            task.wait(0.5)
+            joinTeamRemote:InvokeServer("SetTeam", "Pirates")
+        end
+    end)
+    if not success then
+        -- Phương pháp dự phòng nếu Remote chính bị chặn (Virtual Input)
+        pcall(function()
+            local mainUI = LocalPlayer.PlayerGui:WaitForChild("Main")
+            local chooseTeamFrame = mainUI:WaitForChild("ChooseTeam")
+            if chooseTeamFrame.Visible then
+                local pirateButton = chooseTeamFrame:WaitForChild("Container"):WaitForChild("Pirates"):WaitForChild("Frame"):WaitForChild("ViewportFrame"):WaitForChild("TextButton")
+                for _, connection in pairs(getconnections(pirateButton.MouseButton1Click)) do
+                    connection:Fire()
+                end
+            end
+        end)
+    end
+end
+
+-- THỰC THI CHỌN PHE LẬP TỨC
+task.spawn(function()
+    while LocalPlayer.Team == nil or LocalPlayer.Team.Name == "Choosing" do
+        AutoSelectPiratesTeam()
+        task.wait(1)
+    end
+end)
+
+-- CƠ SỞ DỮ LIỆU CHUẨN XÁC 100% CỦA SEA 1 (MỌI CẤP ĐỘ, QUÁI VẬT, NPC VÀ NHIỆM VỤ)
+getgenv().Sea1FarmData = {
+    {
+        LevelMin = 0,
+        LevelMax = 10,
+        IslandName = "Starter Island",
+        MobName = "Bandit",
+        QuestNPC = "Bandit Quest Giver",
+        QuestName = "BanditQuest1",
+        QuestIndex = 1,
+        NPCCFrame = CFrame.new(1059.3, 15.4, 1549.2),
+        MobCFrame = CFrame.new(1145.5, 17.2, 1630.8)
+    },
+    {
+        LevelMin = 10,
+        LevelMax = 15,
+        IslandName = "Jungle",
+        MobName = "Monkey",
+        QuestNPC = "Adventurer",
+        QuestName = "JungleQuest",
+        QuestIndex = 1,
+        NPCCFrame = CFrame.new(-1601.6, 36.8, 153.2),
+        MobCFrame = CFrame.new(-1610.4, 22.3, 142.1)
+    },
+    {
+        LevelMin = 15,
+        LevelMax = 30,
+        IslandName = "Jungle",
+        MobName = "Gorilla",
+        QuestNPC = "Adventurer",
+        QuestName = "JungleQuest",
+        QuestIndex = 2,
+        NPCCFrame = CFrame.new(-1601.6, 36.8, 153.2),
+        MobCFrame = CFrame.new(-1240.2, 6.2, -490.5)
+    },
+    {
+        LevelMin = 30,
+        LevelMax = 45,
+        IslandName = "Pirate Village",
+        MobName = "Pirate",
+        QuestNPC = "Pirate Adventurer",
+        QuestName = "BuggyQuest1",
+        QuestIndex = 1,
+        NPCCFrame = CFrame.new(-1141.2, 4.8, 3828.4),
+        MobCFrame = CFrame.new(-1205.6, 4.8, 3900.2)
+    },
+    {
+        LevelMin = 45,
+        LevelMax = 60,
+        IslandName = "Pirate Village",
+        MobName = "Brute",
+        QuestNPC = "Pirate Adventurer",
+        QuestName = "BuggyQuest1",
+        QuestIndex = 2,
+        NPCCFrame = CFrame.new(-1141.2, 4.8, 3828.4),
+        MobCFrame = CFrame.new(-1148.5, 4.8, 4312.3)
+    },
+    {
+        LevelMin = 60,
+        LevelMax = 75,
+        IslandName = "Desert",
+        MobName = "Desert Bandit",
+        QuestNPC = "Desert Adventurer",
+        QuestName = "DesertQuest",
+        QuestIndex = 1,
+        NPCCFrame = CFrame.new(894.2, 6.4, 4334.1),
+        MobCFrame = CFrame.new(995.3, 6.4, 4420.5)
+    },
+    {
+        LevelMin = 75,
+        LevelMax = 90,
+        IslandName = "Desert",
+        MobName = "Desert Officer",
+        QuestNPC = "Desert Adventurer",
+        QuestName = "DesertQuest",
+        QuestIndex = 2,
+        NPCCFrame = CFrame.new(894.2, 6.4, 4334.1),
+        MobCFrame = CFrame.new(1542.1, 14.3, 4375.8)
+    },
+    {
+        LevelMin = 90,
+        LevelMax = 120,
+        IslandName = "Frozen Village",
+        MobName = "Snow Bandit",
+        QuestNPC = "Snow Adventurer",
+        QuestName = "SnowQuest",
+        QuestIndex = 1,
+        NPCCFrame = CFrame.new(1386.5, 87.3, -1298.2),
+        MobCFrame = CFrame.new(1289.4, 105.5, -1342.1)
+    },
+    {
+        LevelMin = 120,
+        LevelMax = 150,
+        IslandName = "Frozen Village",
+        MobName = "Snowman",
+        QuestNPC = "Snow Adventurer",
+        QuestName = "SnowQuest",
+        QuestIndex = 2,
+        NPCCFrame = CFrame.new(1386.5, 87.3, -1298.2),
+        MobCFrame = CFrame.new(1260.1, 150.2, -1450.6)
+    },
+    {
+        LevelMin = 150,
+        LevelMax = 175,
+        IslandName = "Marine Fortress",
+        MobName = "Chief Petty Officer",
+        QuestNPC = "Marine Officer",
+        QuestName = "MarineQuest",
+        QuestIndex = 1,
+        NPCCFrame = CFrame.new(-4820.3, 20.4, 4320.1),
+        MobCFrame = CFrame.new(-4890.5, 22.3, 4210.6)
+    },
+    {
+        LevelMin = 175,
+        LevelMax = 225,
+        IslandName = "Skylands",
+        MobName = "Sky Bandit",
+        QuestNPC = "Master Sword Specialist",
+        QuestName = "SkyQuest",
+        QuestIndex = 1,
+        NPCCFrame = CFrame.new(-4842.1, 717.5, -2620.4),
+        MobCFrame = CFrame.new(-4980.2, 717.5, -2890.3)
+    },
+    {
+        LevelMin = 225,
+        LevelMax = 250,
+        IslandName = "Skylands",
+        MobName = "Dark Master",
+        QuestNPC = "Master Sword Specialist",
+        QuestName = "SkyQuest",
+        QuestIndex = 2,
+        NPCCFrame = CFrame.new(-4842.1, 717.5, -2620.4),
+        MobCFrame = CFrame.new(-5240.5, 717.5, -2310.8)
+    },
+    {
+        LevelMin = 250,
+        LevelMax = 300,
+        IslandName = "Prison",
+        MobName = "Prisoner",
+        QuestNPC = "Prison Warden",
+        QuestName = "WardenQuest",
+        QuestIndex = 1,
+        NPCCFrame = CFrame.new(4802.4, 4.2, 700.1),
+        MobCFrame = CFrame.new(4880.6, 4.2, 820.4)
+    },
+    {
+        LevelMin = 300,
+        LevelMax = 325,
+        IslandName = "Prison",
+        MobName = "Dangerous Prisoner",
+        QuestNPC = "Prison Warden",
+        QuestName = "WardenQuest",
+        QuestIndex = 2,
+        NPCCFrame = CFrame.new(4802.4, 4.2, 700.1),
+        MobCFrame = CFrame.new(4720.1, 4.2, 890.5)
+    },
+    {
+        LevelMin = 325,
+        LevelMax = 375,
+        IslandName = "Magma Village",
+        MobName = "Military Soldier",
+        QuestNPC = "Magma Admiral",
+        QuestName = "MagmaQuest",
+        QuestIndex = 1,
+        NPCCFrame = CFrame.new(-5212.4, 8.3, 8432.1),
+        MobCFrame = CFrame.new(-5320.1, 12.4, 8540.2)
+    },
+    {
+        LevelMin = 375,
+        LevelMax = 400,
+        IslandName = "Magma Village",
+        MobName = "Military Spy",
+        QuestNPC = "Magma Admiral",
+        QuestName = "MagmaQuest",
+        QuestIndex = 2,
+        NPCCFrame = CFrame.new(-5212.4, 8.3, 8432.1),
+        MobCFrame = CFrame.new(-5600.4, 75.2, 8420.6)
+    },
+    {
+        LevelMin = 400,
+        LevelMax = 450,
+        IslandName = "Underwater City",
+        MobName = "Fishman Warrior",
+        QuestNPC = "Fishman Lord",
+        QuestName = "FishmanQuest",
+        QuestIndex = 1,
+        NPCCFrame = CFrame.new(61122.4, 18.5, 1542.3),
+        MobCFrame = CFrame.new(61005.1, 18.5, 1320.4)
+    },
+    {
+        LevelMin = 450,
+        LevelMax = 525,
+        IslandName = "Underwater City",
+        MobName = "Fishman Commando",
+        QuestNPC = "Fishman Lord",
+        QuestName = "FishmanQuest",
+        QuestIndex = 2,
+        NPCCFrame = CFrame.new(61122.4, 18.5, 1542.3),
+        MobCFrame = CFrame.new(61340.6, 18.5, 1100.2)
+    },
+    {
+        LevelMin = 525,
+        LevelMax = 575,
+        IslandName = "Upper Skylands",
+        MobName = "God's Guard",
+        QuestNPC = "Master Captain",
+        QuestName = "SkyExpQuest1",
+        QuestIndex = 1,
+        NPCCFrame = CFrame.new(-5722.3, 5110.4, -802.4),
+        MobCFrame = CFrame.new(-5840.1, 5115.3, -620.5)
+    },
+    {
+        LevelMin = 575,
+        LevelMax = 625,
+        IslandName = "Upper Skylands",
+        MobName = "Shaman",
+        QuestNPC = "Master Captain",
+        QuestName = "SkyExpQuest1",
+        QuestIndex = 2,
+        NPCCFrame = CFrame.new(-5722.3, 5110.4, -802.4),
+        MobCFrame = CFrame.new(-5900.5, 5190.2, -410.1)
+    },
+    {
+        LevelMin = 625,
+        LevelMax = 675,
+        IslandName = "Fountain City",
+        MobName = "Galley Pirate",
+        QuestNPC = "Cyborg Developer",
+        QuestName = "FountainQuest",
+        QuestIndex = 1,
+        NPCCFrame = CFrame.new(5124.5, 4.3, 4102.4),
+        MobCFrame = CFrame.new(5250.2, 4.3, 3950.6)
+    },
+    {
+        LevelMin = 675,
+        LevelMax = 700,
+        IslandName = "Fountain City",
+        MobName = "Galley Captain",
+        QuestNPC = "Cyborg Developer",
+        QuestName = "FountainQuest",
+        QuestIndex = 2,
+        NPCCFrame = CFrame.new(5124.5, 4.3, 4102.4),
+        MobCFrame = CFrame.new(5420.1, 4.3, 3710.2)
+    }
+}
+
+-- HÀM TRẢ VỀ DỮ LIỆU BÃI FARM THEO CẤP ĐỘ HIỆN TẠI TỰ ĐỘNG
+function GetCurrentFarmData()
+    local currentLevel = LocalPlayer.Data.Level.Value
+    for i = 1, #getgenv().Sea1FarmData do
+        local data = getgenv().Sea1FarmData[i]
+        if currentLevel >= data.LevelMin and currentLevel < data.LevelMax then
+            return data
+        end
+    end
+    -- Mặc định trả về bãi cuối cùng nếu cấp độ vượt ngưỡng Sea 1
+    return getgenv().Sea1FarmData[#getgenv().Sea1FarmData]
+end
+
+          print("[Hoàng Hub] Khởi tạo Phần 1 thành công. Đã loại bỏ UI lỗi. Dữ liệu Sea 1 đã sẵn sàng.")
+          -- =====================================================================
+-- PHẦN 2: ĐỘNG CƠ DI CHUYỂN TWEEN, NOCLIP VÀ CƠ CHẾ CHỐNG KẸT AN TOÀN
+-- TIÊU CHUẨN: CHỐNG DI CHUYỂN GIẬT LÙI, TỰ ĐỘNG KHÔI PHỤC KHI BỊ CHẶN
+-- =====================================================================
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+local CurrentTween = nil
+local LastPlayerPosition = Vector3.new(0, 0, 0)
+local StuckCheckTimer = 0
+local IsNoclipEnabled = true
+
+-- HỆ THỐNG XUYÊN TƯỜNG TRONG KHI DI CHUYỂN (NOCLIP)
+RunService.Stepped:Connect(function()
+    pcall(function()
+        if IsNoclipEnabled and LocalPlayer.Character then
+            for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                if part:IsA("BasePart") and part.CanCollide == true then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end)
+end)
+
+-- ĐỘNG CƠ DI CHUYỂN HÀM CHUẨN KHÔNG GÂY KÍCH KHỎI SERVER (TWEEN MOTOR)
+function TweenToCFrame(targetCFrame)
+    if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        return
+    end
+    
+    local humanoidRootPart = LocalPlayer.Character.HumanoidRootPart
+    local currentPosition = humanoidRootPart.Position
+    local targetPosition = targetCFrame.Position
+    local distance = (currentPosition - targetPosition).Magnitude
+
+    -- Nếu khoảng cách quá gần, dịch chuyển tức thời để tối ưu thời gian
+    if distance < 15 then
+        humanoidRootPart.CFrame = targetCFrame
+        if CurrentTween then
+            CurrentTween:Cancel()
+        end
+        return
+    end
+
+    -- Xóa bỏ các cấu trúc lực cản cũ để tránh xung đột vật lý Roblox
+    for _, child in pairs(humanoidRootPart:GetChildren()) do
+        if child:IsA("BodyVelocity") or child:IsA("BodyGyro") then
+            child:Destroy()
+        end
+    end
+
+    -- Tạo cấu trúc Tween dựa trên tốc độ cài đặt toàn cục
+    local speed = getgenv().KaitunConfig.TweenSpeed or 300
+    local duration = distance / speed
+    local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear)
+
+    CurrentTween = TweenService:Create(humanoidRootPart, tweenInfo, {CFrame = targetCFrame})
+    CurrentTween:Play()
+end
+
+-- PHƯƠNG THỨC HỦY DI CHUYỂN KHI CẦN THIẾT
+function StopTween()
+    if CurrentTween then
+        pcall(function()
+            CurrentTween:Cancel()
+        end)
+    end
+end
+
+-- THUẬT TOÁN KIỂM TRA VÀ GIẢI VÂY KHI BỊ TREO MÁY (ANTI-STUCK ENGINE)
+task.spawn(function()
+    while task.wait(1) do
+        if getgenv().KaitunConfig.AutoFarm and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local currentPos = LocalPlayer.Character.HumanoidRootPart.Position
+            local distanceMoved = (currentPos - LastPlayerPosition).Magnitude
+
+            -- Nếu nhân vật không di chuyển quá 3 vĩ độ trong vòng 1 giây
+            if distanceMoved < 3 then
+                StuckCheckTimer = StuckCheckTimer + 1
+            else
+                StuckCheckTimer = 0
+            end
+
+            LastPlayerPosition = currentPos
+
+            -- Khi phát hiện bị kẹt quá 7 giây liên tục tại một điểm
+            if StuckCheckTimer >= 7 then
+                print("[Hoàng Hub Cảnh Báo] Phát hiện kẹt bãi hoặc kẹt NPC! Đang thực thi giải vây...")
+                StopTween()
+                
+                -- Thực hiện nhảy lên cao để thoát khỏi mesh địa hình bị lỗi
+                pcall(function()
+                    local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+                    if humanoid then
+                        humanoid.Jump = true
+                    end
+                end)
+                
+                task.wait(0.5)
+                
+                -- Khởi động lại cơ chế bằng cách hồi sinh hoặc reset vị trí về đảo chính
+                if StuckCheckTimer >= 15 then
+                    print("[Hoàng Hub Khẩn Cấp] Kẹt quá lâu! Đang tự tử để làm mới nhân vật...")
+                    pcall(function()
+                        LocalPlayer.Character:BreakJoints()
+                    end)
+                    StuckCheckTimer = 0
+                    task.wait(5) -- Chờ hồi sinh hoàn tất
+                end
+            end
+        end
+    end
+end)
+
+-- NGĂN CHẶN CÁC HIỆU ỨNG RƠI TỰ DO LÀM ĐỨT LUỒNG TWEEN
+task.spawn(function()
+    while task.wait(0.1) do
+        pcall(function()
+            if CurrentTween and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                local bodyVelocity = LocalPlayer.Character.HumanoidRootPart:FindFirstChildOfClass("BodyVelocity")
+                if not bodyVelocity then
+                    local newBV = Instance.new("BodyVelocity")
+                    newBV.Velocity = Vector3.new(0, 0, 0)
+                    newBV.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+                    newBV.Parent = LocalPlayer.Character.HumanoidRootPart
+                end
+            else
+                if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    local oldBV = LocalPlayer.Character.HumanoidRootPart:FindFirstChildOfClass("BodyVelocity")
+                    if oldBV then oldBV:Destroy() end
+                end
+            end
+        end)
+    end
+end)
+
+                      print("[Hoàng Hub] Khởi tạo Phần 2 thành công. Động cơ Tween & Chống kẹt đã kích hoạt.")
+                      
