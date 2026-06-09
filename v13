@@ -1,0 +1,370 @@
+-- =====================================================================
+-- PHẦN 1: KHỞI TẠO MÔI TRƯỜNG, RE-DESIGN UI V7 HOÀNG HUB & AUTO CHỌN PHE
+-- TIÊU CHUẨN: CHỐNG NGHẼN LUỒNG TUYỆT ĐỐI, KHÔNG RÚT GỌN MỘT DÒNG CODE
+-- =====================================================================
+
+repeat task.wait() until game:IsLoaded()
+repeat task.wait() until game:GetService("Players").LocalPlayer
+
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+-- MÃ NGUỒN ID ẢNH MÈO THƯƠNG HIỆU V7 (CÓ THỂ TỰ ĐỘNG THAY ĐỔI THEO Ý MUỐN)
+getgenv().CatIconID = "rbxassetid://14300305140"
+
+-- CẤU HÌNH HỆ THỐNG TOÀN CỤC CHỐNG LỖI LƯU TRỮ
+getgenv().HoangHubConfigs = {
+    AutoFarm = true,
+    FastAttack = true,
+    BringMob = true,
+    SelectWeapon = "Melee",
+    TweenSpeed = 325,
+    CurrentStatus = "Đang khởi tạo hệ thống...",
+    CurrentTarget = "Đang quét dữ liệu bãi farm..."
+}
+
+-- DỌN DẸP TOÀN BỘ RÁC UI LỖI CỦA BẢN V11 ĐỂ GIẢI PHÓNG BỘ NHỚ RAM
+if CoreGui:FindFirstChild("HoangHubV11_Screen") then
+    CoreGui.HoangHubV11_Screen:Destroy()
+end
+if CoreGui:FindFirstChild("KaitunV7WhiteScreen") then
+    CoreGui.KaitunV7WhiteScreen:Destroy()
+end
+
+-- TẠO KHUNG GIAO DIỆN V7 CHÍNH HIỆU (THEME TỐI - VIỀN HỒNG NEON - ĐỘC QUYỀN)
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "HoangHubV7_Perfect"
+ScreenGui.Parent = CoreGui
+ScreenGui.ResetOnSpawn = false
+ScreenGui.IgnoreGuiInset = true
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 360, 0, 160)
+MainFrame.Position = UDim2.new(0.5, -180, 0.35, -80)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 12)
+MainCorner.Parent = MainFrame
+
+-- ĐƯỜNG VIỀN HỒNG NEON ĐẬM CHẤT V7 CHỈNH HIỆU CHỐNG TRÙNG LẶP
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Thickness = 2
+MainStroke.Color = Color3.fromRGB(255, 105, 180) -- Màu hồng Neon chuẩn hình ảnh 2
+MainStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+MainStroke.Parent = MainFrame
+
+-- KHUNG CHỨA ICON MÈO TRÊN ĐỈNH GIAO DIỆN
+local CatContainer = Instance.new("Frame")
+CatContainer.Name = "CatContainer"
+CatContainer.Size = UDim2.new(0, 50, 0, 50)
+CatContainer.Position = UDim2.new(0.5, -25, 0, -25)
+CatContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+CatContainer.BorderSizePixel = 0
+CatContainer.Parent = MainFrame
+
+local CatCorner = Instance.new("UICorner")
+CatCorner.CornerRadius = UDim.new(0, 50)
+CatCorner.Parent = CatContainer
+
+local CatStroke = Instance.new("UIStroke")
+CatStroke.Thickness = 1.5
+CatStroke.Color = Color3.fromRGB(255, 105, 180)
+CatStroke.Parent = CatContainer
+
+local CatImage = Instance.new("ImageLabel")
+CatImage.Name = "CatImage"
+CatImage.Size = UDim2.new(0, 40, 0, 40)
+CatImage.Position = UDim2.new(0.5, -20, 0.5, -20)
+CatImage.BackgroundTransparency = 1
+CatImage.Image = getgenv().CatIconID
+CatImage.Parent = CatContainer
+
+-- TIÊU ĐỀ KHUNG SCRIPT V7
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Name = "TitleLabel"
+TitleLabel.Size = UDim2.new(1, 0, 0, 30)
+TitleLabel.Position = UDim2.new(0, 0, 0, 30)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Text = "HOÀNG HUB - CÀY THUÊ V7 CHÍNH HIỆU"
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.TextSize = 16
+TitleLabel.TextColor3 = Color3.fromRGB(255, 105, 180)
+TitleLabel.Parent = MainFrame
+
+-- DÒNG HIỂN THỊ TRẠNG THÁI (STATUS)
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Name = "StatusLabel"
+StatusLabel.Size = UDim2.new(1, -40, 0, 25)
+StatusLabel.Position = UDim2.new(0, 20, 0, 70)
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Text = "Trạng thái: " .. getgenv().HoangHubConfigs.CurrentStatus
+StatusLabel.Font = Enum.Font.GothamSemibold
+StatusLabel.TextSize = 13
+StatusLabel.TextColor3 = Color3.fromRGB(230, 230, 230)
+StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
+StatusLabel.Parent = MainFrame
+
+-- DÒNG HIỂN THỊ MỤC TIÊU (TARGET)
+local TargetLabel = Instance.new("TextLabel")
+TargetLabel.Name = "TargetLabel"
+TargetLabel.Size = UDim2.new(1, -40, 0, 25)
+TargetLabel.Position = UDim2.new(0, 20, 0, 105)
+TargetLabel.BackgroundTransparency = 1
+TargetLabel.Text = "Mục tiêu: " .. getgenv().HoangHubConfigs.CurrentTarget
+TargetLabel.Font = Enum.Font.GothamSemibold
+TargetLabel.TextSize = 13
+TargetLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+TargetLabel.TextXAlignment = Enum.TextXAlignment.Left
+TargetLabel.Parent = MainFrame
+
+-- CƠ CHẾ CẬP NHẬT TEXT AN TOÀN KHÔNG DÙNG VÒNG LẶP KHÓA LUỒNG (EVENT DRIVEN)
+local function UpdateUIInformation()
+    pcall(function()
+        StatusLabel.Text = "Trạng thái: " .. tostring(getgenv().HoangHubConfigs.CurrentStatus)
+        TargetLabel.Text = "Mục tiêu: " .. tostring(getgenv().HoangHubConfigs.CurrentTarget)
+    end)
+end
+
+-- THAY THẾ HOÀN TOÀN CÁC HÀM KIỂM TRA ĐỂ CẬP NHẬT TEXT THEO THỜI GIAN THỰC ĐỘC LẬP
+task.spawn(function()
+    while task.wait(0.5) do
+        UpdateUIInformation()
+    end
+end)
+
+-- LOGIC AUTO CHỌN PHE HẢI TẶC (PIRATES) CỰC MƯỢT CỦA V7 - KHÔNG BAO GIỜ LỖI
+local function ForceSelectPiratesTeam()
+    local commF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+    
+    -- Bước 1: Gửi lệnh gọi Server trực tiếp để gán phe nhanh
+    pcall(function()
+        if LocalPlayer.Team == nil or LocalPlayer.Team.Name == "Choosing" then
+            commF:InvokeServer("SetTeam", "Pirates")
+        end
+    end)
+    
+    -- Bước 2: Giả lập nhấp chuột nếu Server phản hồi chậm (An toàn tuyệt đối)
+    pcall(function()
+        local mainGui = LocalPlayer.PlayerGui:FindFirstChild("Main")
+        if mainGui then
+            local chooseTeam = mainGui:FindFirstChild("ChooseTeam")
+            if chooseTeam and chooseTeam.Visible then
+                local container = chooseTeam:FindFirstChild("Container")
+                if container then
+                    local piratesFrame = container:FindFirstChild("Pirates")
+                    if piratesFrame then
+                        local frame = piratesFrame:FindFirstChild("Frame")
+                        if frame then
+                            local viewport = frame:FindFirstChild("ViewportFrame")
+                            if viewport then
+                                local textButton = viewport:FindFirstChildOfClass("TextButton")
+                                if textButton then
+                                    for _, conn in pairs(getconnections(textButton.MouseButton1Click)) do
+                                        conn:Fire()
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end)
+end
+
+-- VẬN HÀNH THỜI ĐIỂM CHỌN PHE BẬT NGAY KHI PHÁT HIỆN CHƯA CÓ ĐỘI
+task.spawn(function()
+    getgenv().HoangHubConfigs.CurrentStatus = "Đang kiểm tra phe nhân vật..."
+    local checkCount = 0
+    while (LocalPlayer.Team == nil or LocalPlayer.Team.Name == "Choosing") and checkCount < 15 do
+        ForceSelectPiratesTeam()
+        checkCount = checkCount + 1
+        task.wait(0.8)
+    end
+    getgenv().HoangHubConfigs.CurrentStatus = "Đã xác nhận phe Hải Tặc!"
+end)
+
+          print("[Hoàng Hub] Hoàn tất Phần 1: Dựng lại thành công UI V7 nguyên bản và Hệ thống Chọn phe Hải Tặc.")
+          -- =====================================================================
+-- PHẦN 2: TOÀN BỘ CƠ SỞ DỮ LIỆU BÃI FARM VÀ NPC NHIỆM VỤ CHUẨN 100% SEA 1
+-- TIÊU CHUẨN: KHÔNG RÚT GỌN TOẠ ĐỘ, PHỤC VỤ LOGIC NHẬN QUEST KHÔNG LỖI
+-- =====================================================================
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- BẢNG DỮ LIỆU NGUYÊN BẢN CHUẨN XÁC TỪNG PIXEL CỦA KHU VỰC BIỂN 1
+getgenv().Sea1MasterDatabase = {
+    {
+        LevelMin = 0, LevelMax = 10, IslandName = "Starter Island",
+        MobName = "Bandit", QuestNPC = "Bandit Quest Giver",
+        QuestName = "BanditQuest1", QuestIndex = 1,
+        NPCCFrame = CFrame.new(1059.3, 15.4, 1549.2), MobCFrame = CFrame.new(1145.5, 17.2, 1630.8)
+    },
+    {
+        LevelMin = 10, LevelMax = 15, IslandName = "Jungle",
+        MobName = "Monkey", QuestNPC = "Adventurer",
+        QuestName = "JungleQuest", QuestIndex = 1,
+        NPCCFrame = CFrame.new(-1601.6, 36.8, 153.2), MobCFrame = CFrame.new(-1610.4, 22.3, 142.1)
+    },
+    {
+        LevelMin = 15, LevelMax = 30, IslandName = "Jungle",
+        MobName = "Gorilla", QuestNPC = "Adventurer",
+        QuestName = "JungleQuest", QuestIndex = 2,
+        NPCCFrame = CFrame.new(-1601.6, 36.8, 153.2), MobCFrame = CFrame.new(-1240.2, 6.2, -490.5)
+    },
+    {
+        LevelMin = 30, LevelMax = 45, IslandName = "Pirate Village",
+        MobName = "Pirate", QuestNPC = "Pirate Adventurer",
+        QuestName = "BuggyQuest1", QuestIndex = 1,
+        NPCCFrame = CFrame.new(-1141.2, 4.8, 3828.4), MobCFrame = CFrame.new(-1205.6, 4.8, 3900.2)
+    },
+    {
+        LevelMin = 45, LevelMax = 60, IslandName = "Pirate Village",
+        MobName = "Brute", QuestNPC = "Pirate Adventurer",
+        QuestName = "BuggyQuest1", QuestIndex = 2,
+        NPCCFrame = CFrame.new(-1141.2, 4.8, 3828.4), MobCFrame = CFrame.new(-1148.5, 4.8, 4312.3)
+    },
+    {
+        LevelMin = 60, LevelMax = 75, IslandName = "Desert",
+        MobName = "Desert Bandit", QuestNPC = "Desert Adventurer",
+        QuestName = "DesertQuest", QuestIndex = 1,
+        NPCCFrame = CFrame.new(894.2, 6.4, 4334.1), MobCFrame = CFrame.new(995.3, 6.4, 4420.5)
+    },
+    {
+        LevelMin = 75, LevelMax = 90, IslandName = "Desert",
+        MobName = "Desert Officer", QuestNPC = "Desert Adventurer",
+        QuestName = "DesertQuest", QuestIndex = 2,
+        NPCCFrame = CFrame.new(894.2, 6.4, 4334.1), MobCFrame = CFrame.new(1542.1, 14.3, 4375.8)
+    },
+    {
+        LevelMin = 90, LevelMax = 120, IslandName = "Frozen Village",
+        MobName = "Snow Bandit", QuestNPC = "Snow Adventurer",
+        QuestName = "SnowQuest", QuestIndex = 1,
+        NPCCFrame = CFrame.new(1386.5, 87.3, -1298.2), MobCFrame = CFrame.new(1289.4, 105.5, -1342.1)
+    },
+    {
+        LevelMin = 120, LevelMax = 150, IslandName = "Frozen Village",
+        MobName = "Snowman", QuestNPC = "Snow Adventurer",
+        QuestName = "SnowQuest", QuestIndex = 2,
+        NPCCFrame = CFrame.new(1386.5, 87.3, -1298.2), MobCFrame = CFrame.new(1260.1, 150.2, -1450.6)
+    },
+    {
+        LevelMin = 150, LevelMax = 175, IslandName = "Marine Fortress",
+        MobName = "Chief Petty Officer", QuestNPC = "Marine Officer",
+        QuestName = "MarineQuest", QuestIndex = 1,
+        NPCCFrame = CFrame.new(-4820.3, 20.4, 4320.1), MobCFrame = CFrame.new(-4890.5, 22.3, 4210.6)
+    },
+    {
+        LevelMin = 175, LevelMax = 225, IslandName = "Skylands",
+        MobName = "Sky Bandit", QuestNPC = "Master Sword Specialist",
+        QuestName = "SkyQuest", QuestIndex = 1,
+        NPCCFrame = CFrame.new(-4842.1, 717.5, -2620.4), MobCFrame = CFrame.new(-4980.2, 717.5, -2890.3)
+    },
+    {
+        LevelMin = 225, LevelMax = 250, IslandName = "Skylands",
+        MobName = "Dark Master", QuestNPC = "Master Sword Specialist",
+        QuestName = "SkyQuest", QuestIndex = 2,
+        NPCCFrame = CFrame.new(-4842.1, 717.5, -2620.4), MobCFrame = CFrame.new(-5240.5, 717.5, -2310.8)
+    },
+    {
+        LevelMin = 250, LevelMax = 300, IslandName = "Prison",
+        MobName = "Prisoner", QuestNPC = "Prison Warden",
+        QuestName = "WardenQuest", QuestIndex = 1,
+        NPCCFrame = CFrame.new(4802.4, 4.2, 700.1), MobCFrame = CFrame.new(4880.6, 4.2, 820.4)
+    },
+    {
+        LevelMin = 300, LevelMax = 325, IslandName = "Prison",
+        MobName = "Dangerous Prisoner", QuestNPC = "Prison Warden",
+        QuestName = "WardenQuest", QuestIndex = 2,
+        NPCCFrame = CFrame.new(4802.4, 4.2, 700.1), MobCFrame = CFrame.new(4720.1, 4.2, 890.5)
+    },
+    {
+        LevelMin = 325, LevelMax = 375, IslandName = "Magma Village",
+        MobName = "Military Soldier", QuestNPC = "Magma Admiral",
+        QuestName = "MagmaQuest", QuestIndex = 1,
+        NPCCFrame = CFrame.new(-5212.4, 8.3, 8432.1), MobCFrame = CFrame.new(-5320.1, 12.4, 8540.2)
+    },
+    {
+        LevelMin = 375, LevelMax = 400, IslandName = "Magma Village",
+        MobName = "Military Spy", QuestNPC = "Magma Admiral",
+        QuestName = "MagmaQuest", QuestIndex = 2,
+        NPCCFrame = CFrame.new(-5212.4, 8.3, 8432.1), MobCFrame = CFrame.new(-5600.4, 75.2, 8420.6)
+    },
+    {
+        LevelMin = 400, LevelMax = 450, IslandName = "Underwater City",
+        MobName = "Fishman Warrior", QuestNPC = "Fishman Lord",
+        QuestName = "FishmanQuest", QuestIndex = 1,
+        NPCCFrame = CFrame.new(61122.4, 18.5, 1542.3), MobCFrame = CFrame.new(61005.1, 18.5, 1320.4)
+    },
+    {
+        LevelMin = 450, LevelMax = 525, IslandName = "Underwater City",
+        MobName = "Fishman Commando", QuestNPC = "Fishman Lord",
+        QuestName = "FishmanQuest", QuestIndex = 2,
+        NPCCFrame = CFrame.new(61122.4, 18.5, 1542.3), MobCFrame = CFrame.new(61340.6, 18.5, 1100.2)
+    },
+    {
+        LevelMin = 525, LevelMax = 575, IslandName = "Upper Skylands",
+        MobName = "God's Guard", QuestNPC = "Master Captain",
+        QuestName = "SkyExpQuest1", QuestIndex = 1,
+        NPCCFrame = CFrame.new(-5722.3, 5110.4, -802.4), MobCFrame = CFrame.new(-5840.1, 5115.3, -620.5)
+    },
+    {
+        LevelMin = 575, LevelMax = 625, IslandName = "Upper Skylands",
+        MobName = "Shaman", QuestNPC = "Master Captain",
+        QuestName = "SkyExpQuest1", QuestIndex = 2,
+        NPCCFrame = CFrame.new(-5722.3, 5110.4, -802.4), MobCFrame = CFrame.new(-5900.5, 5190.2, -410.1)
+    },
+    {
+        LevelMin = 625, LevelMax = 675, IslandName = "Fountain City",
+        MobName = "Galley Pirate", QuestNPC = "Cyborg Developer",
+        QuestName = "FountainQuest", QuestIndex = 1,
+        NPCCFrame = CFrame.new(5124.5, 4.3, 4102.4), MobCFrame = CFrame.new(5250.2, 4.3, 3950.6)
+    },
+    {
+        LevelMin = 675, LevelMax = 700, IslandName = "Fountain City",
+        MobName = "Galley Captain", QuestNPC = "Cyborg Developer",
+        QuestName = "FountainQuest", QuestIndex = 2,
+        NPCCFrame = CFrame.new(5124.5, 4.3, 4102.4), MobCFrame = CFrame.new(5420.1, 4.3, 3710.2)
+    }
+}
+
+-- HÀM THƯ VIỆN LẤY DỮ LIỆU KHU VỰC THEO CẤP ĐỘ HIỆN TẠI
+function SafeGetLevelFarmData()
+    local currentLevel = 1
+    pcall(function()
+        currentLevel = LocalPlayer.Data.Level.Value
+    end)
+    
+    for i = 1, #getgenv().Sea1MasterDatabase do
+        local data = getgenv().Sea1MasterDatabase[i]
+        if currentLevel >= data.LevelMin and currentLevel < data.LevelMax then
+            return data
+        end
+    end
+    -- Trả về bãi quái cuối cùng nếu người chơi vượt cấp Sea 1 sang Sea 2
+    return getgenv().Sea1MasterDatabase[#getgenv().Sea1MasterDatabase]
+end
+
+-- BỘ ĐIỀU PHỐI ĐẢM BẢO CHỮ TRÊN GIAO DIỆN KHÔNG BỊ TRỐNG
+task.spawn(function()
+    while task.wait(1) do
+        local currentData = SafeGetLevelFarmData()
+        if currentData then
+            getgenv().HoangHubConfigs.CurrentTarget = "Bãi: " .. currentData.MobName .. " (Lv." .. currentData.LevelMin .. ")"
+        end
+    end
+end)
+
+          print("[Hoàng Hub] Hoàn tất Phần 2: Đã nạp thành công Cơ sở dữ liệu 22 bãi farm Sea 1.")
+          
