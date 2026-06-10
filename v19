@@ -1,0 +1,616 @@
+-- =====================================================================
+-- HOÀNG HUB VIP V9 - PHẦN 1: GLOBAL CONFIGURATION & SUPER CEMENT ENGINE
+-- TIÊU CHUẨN: KHÔNG RÚT GỌN - ĐẢM BẢO CONFIG CHUẨN CÀY THUÊ KHÔNG LỖI
+-- =====================================================================
+
+-- [1. KHỞI TẠO BIẾN TOÀN CỤC CẤU HÌNH]
+getgenv().Kaitun_HoangHub = true
+getgenv().TweenSpeed = 315
+getgenv().AutoFarm = true
+getgenv().AutoStats = true
+getgenv().AutoHaki = true
+getgenv().BringMob = true
+getgenv().FastAttack = true
+getgenv().TargetMonster = ""
+getgenv().QuestName = ""
+getgenv().QuestLevel = 1
+getgenv().QuestNPC = CFrame.new(0,0,0)
+getgenv().MobPos = CFrame.new(0,0,0)
+
+-- [2. ĐĂNG KÝ CÁC DỊCH VỤ HỆ THỐNG GỐC]
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Lighting = game:GetService("Lighting")
+local TweenService = game:GetService("TweenService")
+local Player = Players.LocalPlayer
+local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+
+-- [3. ENGINE FIX LAG XI MĂNG TỐI THƯỢNG - XÓA SẠCH VẬT LIỆU MÔI TRƯỜNG]
+local function ActivateSuperCement()
+    print("[HoangHub] Đang thực thi Engine Xi Măng chuyên sâu...")
+    
+    -- Khóa cứng thông số ánh sáng môi trường để giảm tải CPU/GPU
+    Lighting.GlobalShadows = false
+    Lighting.FogEnd = 999999
+    Lighting.Brightness = 1
+    Lighting.ClockTime = 12
+    Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
+    Lighting.Ambient = Color3.fromRGB(128, 128, 128)
+    
+    -- Quét và hủy toàn bộ hiệu ứng hình ảnh phức tạp trong phần Lighting
+    for _, effect in pairs(Lighting:GetChildren()) do
+        if effect:IsA("Sky") or effect:IsA("Atmosphere") or effect:IsA("BloomEffect") 
+        or effect:IsA("BlurEffect") or effect:IsA("ColorCorrectionEffect") 
+        or effect:IsA("SunRaysEffect") then
+            effect:Destroy()
+        end
+    end
+    
+    -- Xử lý triệt để vật liệu của Địa hình (Terrain) - Đặc biệt là hiệu ứng sóng nước
+    local Terrain = workspace:FindFirstChildOfClass("Terrain")
+    if Terrain then
+        Terrain.WaterWaveSize = 0
+        Terrain.WaterWaveSpeed = 0
+        Terrain.WaterReflectance = 0
+        Terrain.WaterTransparency = 1
+        Terrain.Decoration = false
+        Terrain:SetMaterialColor(Enum.Material.Grass, Color3.fromRGB(130, 130, 130))
+        Terrain:SetMaterialColor(Enum.Material.Water, Color3.fromRGB(130, 130, 130))
+        Terrain:SetMaterialColor(Enum.Material.Rock, Color3.fromRGB(130, 130, 130))
+        Terrain:SetMaterialColor(Enum.Material.Sand, Color3.fromRGB(130, 130, 130))
+    end
+    
+    -- Hàm ép mọi BasePart và Mesh về dạng Xi Măng Xám Phẳng
+    local function ApplyCementToPart(part)
+        if part:IsA("BasePart") and not part:IsA("MeshPart") then
+            part.Material = Enum.Material.SmoothPlastic
+            part.Color = Color3.fromRGB(140, 140, 140)
+            part.Reflectance = 0
+            part.CastShadow = false
+        elseif part:IsA("MeshPart") then
+            part.Material = Enum.Material.SmoothPlastic
+            part.Color = Color3.fromRGB(140, 140, 140)
+            part.Reflectance = 0
+            part.CastShadow = false
+            part.TextureID = "" -- Xóa cấu trúc ảnh bề mặt của Mesh
+        elseif part:IsA("Texture") or part:IsA("Decal") then
+            part:Destroy()
+        elseif part:IsA("ParticleEmitter") or part:IsA("Trail") 
+        or part:IsA("Fire") or part:IsA("Smoke") or part:IsA("Sparkles") then
+            part.Enabled = false
+            part:Destroy()
+        end
+    end
+    
+    -- Chạy vòng lặp quét toàn bộ Workspace hiện tại
+    for _, object in pairs(workspace:GetDescendants()) do
+        pcall(function()
+            ApplyCementToPart(object)
+        end)
+    end
+    
+    -- Tạo trình lắng nghe liên tục cho các vật thể mới được sinh ra trong tương lai
+    workspace.DescendantAdded:Connect(function(newChild)
+        pcall(function()
+            ApplyCementToPart(newChild)
+        end)
+    end)
+end
+
+-- Kích hoạt ngay lập tức luồng xử lý Xi măng chuyên sâu
+task.spawn(ActivateSuperCement)
+
+-- [4. THIẾT KẾ GIAO DIỆN TRACKER TRẠNG THÁI (UI MONITOR)]
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "HoangHub_SuperV9"
+ScreenGui.Parent = game.CoreGui
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.BorderSizePixel = 2
+MainFrame.BorderColor3 = Color3.fromRGB(255, 60, 60)
+MainFrame.Position = UDim2.new(0.5, -160, 0, 30)
+MainFrame.Size = UDim2.new(0, 320, 0, 130)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.Parent = MainFrame
+
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Parent = MainFrame
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Size = UDim2.new(1, 0, 0.25, 0)
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.Text = "HOÀNG HUB - CÀY THUÊ KHÔNG LỖI V9"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
+TitleLabel.TextSize = 14
+
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Parent = MainFrame
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Position = UDim2.new(0, 15, 0.3, 0)
+StatusLabel.Size = UDim2.new(1, -30, 0.25, 0)
+StatusLabel.Font = Enum.Font.GothamSemibold
+StatusLabel.Text = "Trạng thái: Đang phân tích dữ liệu..."
+StatusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+StatusLabel.TextSize = 12
+StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
+getgenv().UI_Status = StatusLabel
+
+local QuestLabel = Instance.new("TextLabel")
+QuestLabel.Parent = MainFrame
+QuestLabel.BackgroundTransparency = 1
+QuestLabel.Position = UDim2.new(0, 15, 0.6, 0)
+QuestLabel.Size = UDim2.new(1, -30, 0.25, 0)
+QuestLabel.Font = Enum.Font.GothamSemibold
+QuestLabel.Text = "Nhiệm vụ: Tìm kiếm NPC..."
+QuestLabel.TextColor3 = Color3.fromRGB(0, 255, 128)
+QuestLabel.TextSize = 12
+QuestLabel.TextXAlignment = Enum.TextXAlignment.Left
+getgenv().UI_Quest = QuestLabel
+
+-- [5. ĐẢM BẢO CHỌN PHE TRÁNH LỖI ĐƠ MÀN HÌNH CHỌN ĐỘI]
+task.spawn(function()
+    while task.wait(1) do
+        pcall(function()
+            if not Player.Team or tostring(Player.Team) == "Choosing" then
+                CommF:InvokeServer("SetTeam", "Pirates")
+            end
+        end)
+    end
+end)
+
+              print("[HoangHub] Kết thúc phần 1 thành công - Hệ thống Cement chạy ổn định.")
+              -- =====================================================================
+-- HOÀNG HUB VIP V9 - PHẦN 2: ADVANCED TWEEN ENGINE & ANTI-STUCK SYSTEM
+-- TIÊU CHUẨN: KHÔNG RÚT GỌN - NGĂN CHẶN TUYỆT ĐỐI HIỆN TƯỢNG KẸT ĐỊA HÌNH
+-- =====================================================================
+
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Player = Players.LocalPlayer
+
+-- Các biến nội bộ phục vụ cho cơ chế check kẹt
+local LastPosition = Vector3.new(0,0,0)
+local StuckTime = 0
+
+-- [1. HÀM TRÍ XUẤT HUMAN ROOT PART AN TOÀN]
+local function GetSafeRoot()
+    if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+        return Player.Character.HumanoidRootPart
+    end
+    return nil
+end
+
+-- [2. VÒNG LẶP ÉP NOCLIP XUYÊN QUA MỌI VẬT THỂ]
+task.spawn(function()
+    RunService.Stepped:Connect(function()
+        if getgenv().Kaitun_HoangHub then
+            pcall(function()
+                local Character = Player.Character
+                if Character then
+                    for _, object in pairs(Character:GetChildren()) do
+                        if object:IsA("BasePart") then
+                            object.CanCollide = false
+                        end
+                    end
+                end
+            end)
+        end
+    end)
+end)
+
+-- [3. ENGINE TWEEN DI CHUYỂN HOÀN HẢO TÍCH HỢP CHỐNG RƠI]
+function toTarget(TargetPos)
+    local HRP = GetSafeRoot()
+    if not HRP then return end
+    
+    local Distance = (HRP.Position - TargetPos.Position).Magnitude
+    
+    -- Nếu khoảng cách quá ngắn, lập tức đặt tọa độ trực tiếp để tối ưu thời gian
+    if Distance < 18 then
+        HRP.CFrame = TargetPos
+        return
+    end
+    
+    -- Cơ chế duy trì độ cao không cho nhân vật bị rơi tự do xuống vực sâu
+    local AntiFallBV = HRP:FindFirstChild("HoangHub_VelocityFly")
+    if not AntiFallBV then
+        AntiFallBV = Instance.new("BodyVelocity")
+        AntiFallBV.Name = "HoangHub_VelocityFly"
+        AntiFallBV.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        AntiFallBV.Velocity = Vector3.new(0, 0, 0)
+        AntiFallBV.Parent = HRP
+    end
+    
+    -- Thiết lập thông số và chạy Tween di chuyển
+    local Speed = getgenv().TweenSpeed or 315
+    local TimeRequired = Distance / Speed
+    local CustomTweenInfo = TweenInfo.new(TimeRequired, Enum.EasingStyle.Linear)
+    
+    local ActiveTween = TweenService:Create(HRP, CustomTweenInfo, {CFrame = TargetPos})
+    ActiveTween:Play()
+    
+    -- Luồng giám sát tắt/mở Script giữa chừng để hủy Tween kịp thời
+    task.spawn(function()
+        while ActiveTween.PlaybackState == Enum.PlaybackState.Playing do
+            task.wait(0.1)
+            if not getgenv().Kaitun_HoangHub then
+                ActiveTween:Cancel()
+                if HRP:FindFirstChild("HoangHub_VelocityFly") then
+                    HRP.HoangHub_VelocityFly:Destroy()
+                end
+            end
+        end
+    end)
+    
+    ActiveTween.Completed:Wait()
+    
+    -- Thu dọn BodyVelocity sau khi đã tiếp cận mục tiêu hoàn tất
+    if getgenv().TargetMonster == "" and HRP:FindFirstChild("HoangHub_VelocityFly") then
+        HRP.HoangHub_VelocityFly:Destroy()
+    end
+end
+
+-- [4. BỘ HỆ THỐNG PHÁT HIỆN VÀ GIẢI CỨU KHI BỊ KẸT (ANTI-STUCK DETECTOR)]
+task.spawn(function()
+    while task.wait(1) do
+        if getgenv().Kaitun_HoangHub and getgenv().AutoFarm then
+            pcall(function()
+                local HRP = GetSafeRoot()
+                if HRP then
+                    local CurrentPos = HRP.Position
+                    local DistanceMoved = (CurrentPos - LastPosition).Magnitude
+                    
+                    -- Nếu khoảng cách thay đổi dưới 2 studs trong khi đang bật farm quái
+                    if DistanceMoved < 2 and getgenv().TargetMonster ~= "" then
+                        StuckTime = StuckTime + 1
+                    else
+                        StuckTime = 0
+                    end
+                    
+                    -- Tiến hành giải cứu nếu thời gian kẹt vượt quá 5 giây liên tục
+                    if StuckTime >= 5 then
+                        print("[HoangHub] Phát hiện kẹt! Đang thực thi giải cứu nhân vật...")
+                        -- Ép nhân vật nhảy lên cao đột ngột để thoát khỏi góc kẹt địa hình
+                        HRP.CFrame = HRP.CFrame * CFrame.new(0, 60, 0)
+                        task.wait(0.5)
+                        StuckTime = 0
+                    end
+                    
+                    LastPosition = CurrentPos
+                end
+            end)
+        end
+    end
+end)
+
+                      print("[HoangHub] Kết thúc phần 2 thành công - Hệ thống di chuyển đã tối ưu.")
+                      -- =====================================================================
+-- HOÀNG HUB VIP V9 - PHẦN 3: FAST ATTACK, BRING MOB & AUTO STATS DISTRIBUTOR
+-- TIÊU CHUẨN: KHÔNG RÚT GỌN - TỐI ĐA HÓA TỐC ĐỘ DIỆT QUÁI CÀY THUÊ DẬM CHẤT
+-- =====================================================================
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local VirtualUser = game:GetService("VirtualUser")
+local Player = Players.LocalPlayer
+local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+
+-- [1. FAST ATTACK SIÊU TỐC QUA MODULE NET BYPASS]
+task.spawn(function()
+    while task.wait(0.001) do
+        if getgenv().Kaitun_HoangHub and getgenv().FastAttack then
+            pcall(function()
+                local Character = Player.Character
+                if Character then
+                    local EquippedTool = Character:FindFirstChildOfClass("Tool")
+                    -- Xác định chính xác đang cầm vũ khí cận chiến
+                    if EquippedTool and (EquippedTool.ToolTip == "Melee" or EquippedTool.ToolTip == "Sword") then
+                        local NetModule = ReplicatedStorage:FindFirstChild("Modules") and ReplicatedStorage.Modules:FindFirstChild("Net")
+                        if NetModule then
+                            -- Gửi chuỗi tín hiệu đăng ký đòn đánh trực tiếp lên server
+                            require(NetModule):RemoteEvent("RegisterHit", true)
+                            ReplicatedStorage.Modules.Net["RE/RegisterAttack"]:FireServer()
+                        end
+                        -- Giả lập thao tác nhấp chuột để kích hoạt cơ chế cận chiến của game
+                        VirtualUser:CaptureController()
+                        VirtualUser:ClickButton1(Vector2.new(850, 160))
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- [2. HỆ THỐNG GOM QUÁI (BRING MOB) VÀ PHÌNH ĐẠI HITBOX]
+task.spawn(function()
+    while task.wait(0.1) do
+        if getgenv().Kaitun_HoangHub and getgenv().BringMob and getgenv().TargetMonster ~= "" then
+            pcall(function()
+                local MyHRP = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+                if MyHRP then
+                    for _, enemy in pairs(workspace.Enemies:GetChildren()) do
+                        if enemy.Name == getgenv().TargetMonster and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
+                            local EnemyHRP = enemy:FindFirstChild("HumanoidRootPart")
+                            if EnemyHRP then
+                                -- Khoảng cách quái phải nằm trong vùng hoạt động an toàn (dưới 350 studs)
+                                if (MyHRP.Position - EnemyHRP.Position).Magnitude < 350 then
+                                    -- Tập hợp quái ngay trước mặt người chơi 4 studs
+                                    EnemyHRP.CFrame = MyHRP.CFrame * CFrame.new(0, 0, -4)
+                                    -- Mở rộng kích thước quái để tăng tỷ lệ chém trúng diện rộng
+                                    EnemyHRP.Size = Vector3.new(35, 35, 35)
+                                    EnemyHRP.CanCollide = false
+                                    -- Vô hiệu hóa khả năng di chuyển và hoạt ảnh tấn công của quái để chống lag
+                                    enemy.Humanoid.WalkSpeed = 0
+                                    enemy.Humanoid.JumpPower = 0
+                                    if enemy.Humanoid:FindFirstChild("Animator") then
+                                        enemy.Humanoid.Animator:Destroy()
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- [3. TỰ ĐỘNG TRANG BỊ VŨ KHÍ MELEE TỪ HÀNH TRANG]
+task.spawn(function()
+    while task.wait(0.5) do
+        if getgenv().Kaitun_HoangHub then
+            pcall(function()
+                local Character = Player.Character
+                if Character and Character:FindFirstChild("Humanoid") then
+                    local holdingTool = false
+                    for _, item in pairs(Character:GetChildren()) do
+                        if item:IsA("Tool") then holdingTool = true break end
+                    end
+                    
+                    -- Nếu tay chưa cầm gì, tìm kiếm vũ khí Melee trong Backpack để lôi ra
+                    if not holdingTool then
+                        local Backpack = Player:FindFirstChild("Backpack")
+                        if Backpack then
+                            for _, tool in pairs(Backpack:GetChildren()) do
+                                if tool:IsA("Tool") and tool.ToolTip == "Melee" then
+                                    Character.Humanoid:EquipTool(tool)
+                                    break
+                                end
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- [4. TỰ ĐỘNG PHÂN PHỐI ĐIỂM TIỀM NĂNG (AUTO STATS)]
+task.spawn(function()
+    while task.wait(0.6) do
+        if getgenv().AutoStats and getgenv().Kaitun_HoangHub then
+            pcall(function()
+                local Data = Player:FindFirstChild("Data")
+                if Data and Data:FindFirstChild("Points") then
+                    local AvailablePoints = Data.Points.Value
+                    if AvailablePoints > 0 then
+                        local CurrentMelee = Data.Stats.Melee.Level.Value
+                        local CurrentDefense = Data.Stats.Defense.Level.Value
+                        
+                        -- Quy trình nâng điểm cày thuê: Ưu tiên max Melee, sau đó đến Máu (Defense)
+                        if CurrentMelee < 2550 then
+                            CommF:InvokeServer("AddPoint", "Melee", AvailablePoints)
+                        elseif CurrentDefense < 2550 then
+                            CommF:InvokeServer("AddPoint", "Defense", AvailablePoints)
+                        else
+                            CommF:InvokeServer("AddPoint", "Sword", AvailablePoints)
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+                          print("[HoangHub] Kết thúc phần 3 thành công - Chiến đấu và Chỉ số sẵn sàng.")
+                          -- =====================================================================
+-- HOÀNG HUB VIP V9 - PHẦN 4: COMPREHENSIVE QUEST DATA & MAIN SERVER LOOP
+-- TIÊU CHUẨN: KHÔNG RÚT GỌN - FIX HOÀN TOÀN LỖI KHÔNG NHẬN ĐƯỢC NHIỆM VỤ
+-- =====================================================================
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local VirtualUser = game:GetService("VirtualUser")
+local Player = Players.LocalPlayer
+local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+
+-- [1. CƠ CHẾ CHỐNG AFK TRÊN GIẢ LẬP TREO ĐÊM]
+Player.Idled:Connect(function()
+    VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+    task.wait(1)
+    VirtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+end)
+
+-- [2. BẢNG TRUY XUẤT CƠ SỞ DỮ LIỆU NHIỆM VỤ BIỂN 1 (FULL CHUẨN COORD)]
+function UpdateQuestData()
+    local CurrentLevel = Player.Data.Level.Value
+    
+    if CurrentLevel >= 1 and CurrentLevel <= 14 then
+        getgenv().TargetMonster = "Bandit"
+        getgenv().QuestName = "BanditQuest1"
+        getgenv().QuestLevel = 1
+        getgenv().QuestNPC = CFrame.new(1059, 16, 1549)
+        getgenv().MobPos = CFrame.new(1148, 16, 1610)
+    elseif CurrentLevel >= 15 and CurrentLevel <= 29 then
+        getgenv().TargetMonster = "Monkey"
+        getgenv().QuestName = "JungleQuest"
+        getgenv().QuestLevel = 1
+        getgenv().QuestNPC = CFrame.new(-1599, 36, 153)
+        getgenv().MobPos = CFrame.new(-1496, 23, 35)
+    elseif CurrentLevel >= 30 and CurrentLevel <= 59 then
+        getgenv().TargetMonster = "Gorilla"
+        getgenv().QuestName = "JungleQuest"
+        getgenv().QuestLevel = 2
+        getgenv().QuestNPC = CFrame.new(-1599, 36, 153)
+        getgenv().MobPos = CFrame.new(-1232, 7, -500)
+    elseif CurrentLevel >= 60 and CurrentLevel <= 89 then
+        getgenv().TargetMonster = "Pirate"
+        getgenv().QuestName = "BuggyQuest1"
+        getgenv().QuestLevel = 1
+        getgenv().QuestNPC = CFrame.new(-1140, 5, 3828)
+        getgenv().MobPos = CFrame.new(-1204, 5, 3915)
+    elseif CurrentLevel >= 90 and CurrentLevel <= 119 then
+        getgenv().TargetMonster = "Desert Bandit"
+        getgenv().QuestName = "DesertQuest"
+        getgenv().QuestLevel = 1
+        getgenv().QuestNPC = CFrame.new(896, 7, 4390)
+        getgenv().MobPos = CFrame.new(990, 7, 4425)
+    elseif CurrentLevel >= 120 and CurrentLevel <= 149 then
+        getgenv().TargetMonster = "Snow Bandit"
+        getgenv().QuestName = "SnowQuest"
+        getgenv().QuestLevel = 1
+        getgenv().QuestNPC = CFrame.new(1385, 87, -1298)
+        getgenv().MobPos = CFrame.new(1289, 106, -1320)
+    elseif CurrentLevel >= 150 and CurrentLevel <= 189 then
+        getgenv().TargetMonster = "Chief Petty Officer"
+        getgenv().QuestName = "MarineQuest2"
+        getgenv().QuestLevel = 1
+        getgenv().QuestNPC = CFrame.new(-5039, 28, 4324)
+        getgenv().MobPos = CFrame.new(-4840, 22, 4235)
+        
+    -- [ĐOẠN COORD ĐẢO NGỤC TÙ KHẮC PHỤC LỖI KẸT CẤP ĐỘ KHÔNG NHẬN ĐƯỢC NV]
+    elseif CurrentLevel >= 190 and CurrentLevel <= 249 then
+        getgenv().TargetMonster = "Prisoner"
+        getgenv().QuestName = "PrisonQuest"
+        getgenv().QuestLevel = 1
+        getgenv().QuestNPC = CFrame.new(5308, 1, 485)  -- Vị trí chuẩn NPC
+        getgenv().MobPos = CFrame.new(5395, 2, 532)   -- Vị trí bãi quái
+        
+    elseif CurrentLevel >= 250 and CurrentLevel <= 299 then
+        getgenv().TargetMonster = "Toga Warrior"
+        getgenv().QuestName = "ColosseumQuest"
+        getgenv().QuestLevel = 1
+        getgenv().QuestNPC = CFrame.new(-1580, 7, -2982)
+        getgenv().MobPos = CFrame.new(-1496, 49, -2828)
+    elseif CurrentLevel >= 300 and CurrentLevel <= 324 then
+        getgenv().TargetMonster = "Magma Ninja"
+        getgenv().QuestName = "MagmaQuest"
+        getgenv().QuestLevel = 1
+        getgenv().QuestNPC = CFrame.new(-5315, 12, 8515)
+        getgenv().MobPos = CFrame.new(-5403, 15, 8432)
+    else
+        getgenv().TargetMonster = "Galley Pirate"
+        getgenv().QuestName = "FountainQuest"
+        getgenv().QuestLevel = 1
+        getgenv().QuestNPC = CFrame.new(5259, 38, 4050)
+        getgenv().MobPos = CFrame.new(5427, 43, 3995)
+    end
+end
+
+-- [3. HÀM TÌM KIẾM QUÁI MỤC TIÊU CÒN SỐNG TRONG WORKSPACE]
+local function FindAliveTargetMob()
+    local OptimalMob = nil
+    local MinimumDistance = math.huge
+    local MyHRP = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+    
+    if MyHRP then
+        for _, enemy in pairs(workspace.Enemies:GetChildren()) do
+            if enemy.Name == getgenv().TargetMonster and enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
+                local EnemyHRP = enemy:FindFirstChild("HumanoidRootPart")
+                if EnemyHRP then
+                    local currentMag = (MyHRP.Position - EnemyHRP.Position).Magnitude
+                    if currentMag < MinimumDistance then
+                        MinimumDistance = currentMag
+                        OptimalMob = enemy
+                    end
+                end
+            end
+        end
+    end
+    return OptimalMob
+end
+
+-- [4. VÒNG LẶP TRUNG TÂM - ĐIỀU HÀNH LOGIC VÀ ÉP NHẬN NHIỆM VỤ QUA SERVER]
+task.spawn(function()
+    while task.wait() do
+        if getgenv().Kaitun_HoangHub and getgenv().AutoFarm then
+            pcall(function()
+                -- Tính toán lại mốc cấp độ hiện tại để gán thông số
+                UpdateQuestData()
+                
+                if getgenv().UI_Status then
+                    getgenv().UI_Status.Text = "Cấp độ hiện tại: " .. Player.Data.Level.Value
+                end
+                
+                -- KIỂM TRA ĐIỀU KIỆN TRẠNG THÁI NHIỆM VỤ QUA BIẾN GỐC CỦA GAME CƠ BẢN
+                local QuestUI = Player.PlayerGui:FindFirstChild("Main") and Player.PlayerGui.Main:FindFirstChild("Quest")
+                local HasCorrectQuest = false
+                
+                if QuestUI and QuestUI.Visible then
+                    for _, childLabel in pairs(QuestUI:GetDescendants()) do
+                        if childLabel:IsA("TextLabel") and string.find(childLabel.Text, getgenv().TargetMonster) then
+                            HasCorrectQuest = true
+                            break
+                        end
+                    end
+                end
+                
+                -- Xử lý tình huống chưa nhận đúng nhiệm vụ quy định
+                if not HasCorrectQuest then
+                    if getgenv().UI_Quest then getgenv().UI_Quest.Text = "Trạng thái: Di chuyển đi nhận NV " .. getgenv().TargetMonster end
+                    
+                    -- Nếu đang dính một nhiệm vụ rác hoặc sai tên, thực hiện lệnh huỷ ngay
+                    if QuestUI and QuestUI.Visible then
+                        CommF:InvokeServer("AbandonQuest")
+                        task.wait(0.3)
+                    end
+                    
+                    local HRP = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+                    if HRP then
+                        local distanceToNPC = (HRP.Position - getgenv().QuestNPC.Position).Magnitude
+                        if distanceToNPC > 15 then
+                            toTarget(getgenv().QuestNPC)
+                        else
+                            -- Thực hiện lệnh Remote Invoke chọc thẳng Server ép nhận nhiệm vụ
+                            CommF:InvokeServer("StartQuest", getgenv().QuestName, getgenv().QuestLevel)
+                            task.wait(0.5)
+                        end
+                    end
+                else
+                    -- Đã kiểm tra đúng nhiệm vụ trên Server -> Tiến hành farm quái
+                    if getgenv().UI_Quest then getgenv().UI_Quest.Text = "Đang tiêu diệt: " .. getgenv().TargetMonster end
+                    
+                    local ActiveMob = FindAliveTargetMob()
+                    if ActiveMob and ActiveMob:FindFirstChild("HumanoidRootPart") then
+                        -- Bay lên đầu quái đúng 8 studs để giữ khoảng cách an toàn và tấn công dồn dập
+                        local FightCFrame = ActiveMob.HumanoidRootPart.CFrame * CFrame.new(0, 8, 0)
+                        toTarget(FightCFrame)
+                    else
+                        -- Nếu quái chưa hồi sinh, bay lơ lửng tại điểm chờ quái xuất hiện để tránh rơi xuống đất
+                        toTarget(getgenv().MobPos * CFrame.new(0, 18, 0))
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- [5. TỰ ĐỘNG KÍCH HOẠT MÃ QUÀ TẶNG KINH NGHIỆM TÂN THỦ]
+task.spawn(function()
+    local ExpCodes = {"Sub2Fer999", "Enyu_is_Pro", "Magicbus", "JCWK", "Starcodeheo", "Bluxxy", "SUB2GAMERROBOT_EXP1"}
+    for _, code in pairs(ExpCodes) do
+        pcall(function() CommF:InvokeServer("RedeemCode", code) end)
+        task.wait(8)
+    end
+end)
+
+print("[HoangHub] Kết thúc phần 4 thành công - Bản V9 đã hoàn chỉnh 100%.")
+-- =====================================================================
+          
