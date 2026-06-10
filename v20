@@ -1,0 +1,1397 @@
+-- =====================================================================
+-- HOÀNG HUB VIP V10 - PHẦN 1: GLOBAL CONFIG & FPS BOOSTER ENGINE
+-- TÍCH HỢP: REDZ FAKE SOURCE WIKIPEDIA (LEVEL 1 -> 2800)
+-- =====================================================================
+
+getgenv().Kaitun_HoangHub = true
+getgenv().TweenSpeed = 315
+getgenv().AutoFarm = true
+getgenv().AutoStats = true
+getgenv().AutoHaki = true
+getgenv().BringMob = true
+getgenv().FastAttack = true
+getgenv().TargetMonster = ""
+getgenv().QuestName = ""
+getgenv().QuestLevel = 1
+getgenv().QuestNPC = CFrame.new(0,0,0)
+getgenv().MobPos = CFrame.new(0,0,0)
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Lighting = game:GetService("Lighting")
+local TweenService = game:GetService("TweenService")
+local VirtualUser = game:GetService("VirtualUser")
+local Workspace = game:GetService("Workspace")
+local Player = Players.LocalPlayer
+local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+
+-- [1. CHỐNG AFK - ANTI KICK KHI TREO MÁY XUYÊN ĐÊM]
+Player.Idled:Connect(function()
+    VirtualUser:Button2Down(Vector2.new(0,0), Workspace.CurrentCamera.CFrame)
+    task.wait(1)
+    VirtualUser:Button2Up(Vector2.new(0,0), Workspace.CurrentCamera.CFrame)
+end)
+
+-- [2. TỰ ĐỘNG CHỌN PHE HẢI TẶC TRÁNH KẸT MÀN HÌNH TRẮNG]
+task.spawn(function()
+    while task.wait(1) do
+        if getgenv().Kaitun_HoangHub then
+            pcall(function()
+                if not Player.Team or tostring(Player.Team) == "Choosing" then
+                    CommF:InvokeServer("SetTeam", "Pirates")
+                end
+            end)
+        end
+    end
+end)
+
+-- [3. ENGINE SUPER CEMENT V9 & FPS BOOSTER (TỐI ĐA HÓA RAM)]
+local function ActivateSuperCementAndBoostFPS()
+    print("[HoangHub] Kích hoạt Super Cement & FPS Booster...")
+    
+    Lighting.GlobalShadows = false
+    Lighting.FogEnd = 9e9
+    Lighting.Brightness = 1
+    Lighting.ClockTime = 12
+    Lighting.OutdoorAmbient = Color3.fromRGB(150, 150, 150)
+    Lighting.Ambient = Color3.fromRGB(150, 150, 150)
+    
+    -- Xóa mọi hiệu ứng ánh sáng nặng
+    for _, effect in pairs(Lighting:GetChildren()) do
+        if effect:IsA("Sky") or effect:IsA("Atmosphere") or effect:IsA("BloomEffect") 
+        or effect:IsA("BlurEffect") or effect:IsA("ColorCorrectionEffect") or effect:IsA("SunRaysEffect") then
+            effect:Destroy()
+        end
+    end
+    
+    -- Phẳng hóa địa hình, tắt sóng nước
+    local Terrain = Workspace:FindFirstChildOfClass("Terrain")
+    if Terrain then
+        Terrain.WaterWaveSize = 0
+        Terrain.WaterWaveSpeed = 0
+        Terrain.WaterReflectance = 0
+        Terrain.WaterTransparency = 1
+        Terrain.Decoration = false
+        Terrain:SetMaterialColor(Enum.Material.Grass, Color3.fromRGB(140, 140, 140))
+        Terrain:SetMaterialColor(Enum.Material.Water, Color3.fromRGB(140, 140, 140))
+        Terrain:SetMaterialColor(Enum.Material.Rock, Color3.fromRGB(140, 140, 140))
+        Terrain:SetMaterialColor(Enum.Material.Sand, Color3.fromRGB(140, 140, 140))
+    end
+    
+    -- Xóa tài nguyên vật thể
+    local function OptimizeInstance(instance)
+        if instance:IsA("BasePart") and not instance:IsA("MeshPart") then
+            instance.Material = Enum.Material.SmoothPlastic
+            instance.Color = Color3.fromRGB(140, 140, 140)
+            instance.Reflectance = 0
+            instance.CastShadow = false
+        elseif instance:IsA("MeshPart") then
+            instance.Material = Enum.Material.SmoothPlastic
+            instance.Color = Color3.fromRGB(140, 140, 140)
+            instance.Reflectance = 0
+            instance.CastShadow = false
+            instance.TextureID = ""
+        elseif instance:IsA("Decal") or instance:IsA("Texture") then
+            instance:Destroy()
+        elseif instance:IsA("ParticleEmitter") or instance:IsA("Trail") or instance:IsA("Fire") or instance:IsA("Smoke") or instance:IsA("Sparkles") then
+            instance.Enabled = false
+            instance:Destroy()
+        end
+    end
+    
+    for _, obj in pairs(Workspace:GetDescendants()) do
+        pcall(function() OptimizeInstance(obj) end)
+    end
+    
+    Workspace.DescendantAdded:Connect(function(child)
+        pcall(function() OptimizeInstance(child) end)
+    end)
+end
+task.spawn(ActivateSuperCementAndBoostFPS)
+
+-- [4. UI TRACKER CÀY THUÊ HIỆN ĐẠI]
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "HoangHub_WikiV10"
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+MainFrame.BorderSizePixel = 2
+MainFrame.BorderColor3 = Color3.fromRGB(255, 50, 50)
+MainFrame.Position = UDim2.new(0.5, -175, 0, 40)
+MainFrame.Size = UDim2.new(0, 350, 0, 140)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.Parent = MainFrame
+
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Parent = MainFrame
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Size = UDim2.new(1, 0, 0.25, 0)
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.Text = "HOÀNG HUB - REDZ WIKI DATABASE 1-2800"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 200, 0)
+TitleLabel.TextSize = 13
+
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Parent = TitleLabel
+UIStroke.Thickness = 1
+UIStroke.Color = Color3.fromRGB(0, 0, 0)
+
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Parent = MainFrame
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Position = UDim2.new(0, 15, 0.35, 0)
+StatusLabel.Size = UDim2.new(1, -30, 0.25, 0)
+StatusLabel.Font = Enum.Font.GothamSemibold
+StatusLabel.Text = "Trạng thái: Đang kết nối Database..."
+StatusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+StatusLabel.TextSize = 12
+StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
+getgenv().UI_Status = StatusLabel
+
+local QuestLabel = Instance.new("TextLabel")
+QuestLabel.Parent = MainFrame
+QuestLabel.BackgroundTransparency = 1
+QuestLabel.Position = UDim2.new(0, 15, 0.65, 0)
+QuestLabel.Size = UDim2.new(1, -30, 0.25, 0)
+QuestLabel.Font = Enum.Font.GothamSemibold
+QuestLabel.Text = "Nhiệm vụ: Chờ xử lý..."
+QuestLabel.TextColor3 = Color3.fromRGB(0, 255, 128)
+QuestLabel.TextSize = 12
+QuestLabel.TextXAlignment = Enum.TextXAlignment.Left
+getgenv().UI_Quest = QuestLabel
+
+print("[HoangHub] Hoàn tất tải cấu hình Phần 1.")
+-- =====================================================================
+  -- =====================================================================
+-- HOÀNG HUB VIP V10 - PHẦN 2: TWEEN ENGINE & ANTI-STUCK SYSTEM
+-- =====================================================================
+
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Player = Players.LocalPlayer
+local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+
+local LastPos = Vector3.new(0,0,0)
+local StuckTick = 0
+
+local function GetSafeHRP()
+    if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+        return Player.Character.HumanoidRootPart
+    end
+    return nil
+end
+
+-- [1. VÒNG LẶP NOCLIP (XUYÊN TƯỜNG TUYỆT ĐỐI)]
+task.spawn(function()
+    RunService.Stepped:Connect(function()
+        if getgenv().Kaitun_HoangHub then
+            pcall(function()
+                local Char = Player.Character
+                if Char then
+                    for _, part in pairs(Char:GetChildren()) do
+                        if part:IsA("BasePart") then
+                            part.CanCollide = false
+                        end
+                    end
+                end
+            end)
+        end
+    end)
+end)
+
+-- [2. HỆ THỐNG DI CHUYỂN TWEEN HOÀN HẢO]
+function toTarget(TargetCFrame)
+    local HRP = GetSafeHRP()
+    if not HRP then return end
+    
+    local Distance = (HRP.Position - TargetCFrame.Position).Magnitude
+    
+    if Distance < 20 then
+        HRP.CFrame = TargetCFrame
+        return
+    end
+    
+    local AntiFall = HRP:FindFirstChild("Hoang_AntiFall")
+    if not AntiFall then
+        AntiFall = Instance.new("BodyVelocity")
+        AntiFall.Name = "Hoang_AntiFall"
+        AntiFall.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        AntiFall.Velocity = Vector3.new(0, 0, 0)
+        AntiFall.Parent = HRP
+    end
+    
+    local Speed = getgenv().TweenSpeed or 315
+    local TimeNeeded = Distance / Speed
+    local TInfo = TweenInfo.new(TimeNeeded, Enum.EasingStyle.Linear)
+    
+    local TweenRun = TweenService:Create(HRP, TInfo, {CFrame = TargetCFrame})
+    TweenRun:Play()
+    
+    task.spawn(function()
+        while TweenRun.PlaybackState == Enum.PlaybackState.Playing do
+            task.wait(0.1)
+            if not getgenv().Kaitun_HoangHub then
+                TweenRun:Cancel()
+                if HRP:FindFirstChild("Hoang_AntiFall") then
+                    HRP.Hoang_AntiFall:Destroy()
+                end
+            end
+        end
+    end)
+    
+    TweenRun.Completed:Wait()
+    
+    if getgenv().TargetMonster == "" and HRP:FindFirstChild("Hoang_AntiFall") then
+        HRP.Hoang_AntiFall:Destroy()
+    end
+end
+
+-- [3. HỆ THỐNG CHỐNG KẸT ĐỊA HÌNH (ANTI-STUCK)]
+task.spawn(function()
+    while task.wait(1) do
+        if getgenv().Kaitun_HoangHub and getgenv().AutoFarm then
+            pcall(function()
+                local HRP = GetSafeHRP()
+                if HRP then
+                    local CurrentPos = HRP.Position
+                    local DistMoved = (CurrentPos - LastPos).Magnitude
+                    
+                    if DistMoved < 2 and getgenv().TargetMonster ~= "" then
+                        StuckTick = StuckTick + 1
+                    else
+                        StuckTick = 0
+                    end
+                    
+                    if StuckTick >= 6 then
+                        print("[HoangHub] Giải cứu nhân vật khỏi góc kẹt...")
+                        HRP.CFrame = HRP.CFrame * CFrame.new(0, 70, 0)
+                        task.wait(0.5)
+                        StuckTick = 0
+                    end
+                    LastPos = CurrentPos
+                end
+            end)
+        end
+    end
+end)
+
+-- [4. TỰ ĐỘNG CỘNG CHỈ SỐ (AUTO STATS CÀY THUÊ)]
+task.spawn(function()
+    while task.wait(0.5) do
+        if getgenv().AutoStats and getgenv().Kaitun_HoangHub then
+            pcall(function()
+                local Data = Player:FindFirstChild("Data")
+                if Data and Data:FindFirstChild("Points") then
+                    local Pts = Data.Points.Value
+                    if Pts > 0 then
+                        local MeleeLv = Data.Stats.Melee.Level.Value
+                        local DefLv = Data.Stats.Defense.Level.Value
+                        local SwordLv = Data.Stats.Sword.Level.Value
+                        
+                        if MeleeLv < 2550 then
+                            CommF:InvokeServer("AddPoint", "Melee", Pts)
+                        elseif DefLv < 2550 then
+                            CommF:InvokeServer("AddPoint", "Defense", Pts)
+                        else
+                            CommF:InvokeServer("AddPoint", "Sword", Pts)
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- [5. TỰ ĐỘNG CẦM VŨ KHÍ]
+task.spawn(function()
+    while task.wait(1) do
+        if getgenv().Kaitun_HoangHub then
+            pcall(function()
+                local Char = Player.Character
+                if Char and Char:FindFirstChild("Humanoid") then
+                    local isHolding = false
+                    for _, v in pairs(Char:GetChildren()) do
+                        if v:IsA("Tool") then isHolding = true break end
+                    end
+                    
+                    if not isHolding then
+                        local Backpack = Player:FindFirstChild("Backpack")
+                        if Backpack then
+                            for _, tool in pairs(Backpack:GetChildren()) do
+                                if tool.ToolTip == "Melee" then
+                                    Char.Humanoid:EquipTool(tool)
+                                    break
+                                end
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+print("[HoangHub] Hoàn tất tải phần 2.")
+-- =====================================================================
+                                  -- =====================================================================
+-- HOÀNG HUB VIP V10 - PHẦN 3: FAST ATTACK BYPASS & BRING MOB 
+-- =====================================================================
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local VirtualUser = game:GetService("VirtualUser")
+local Workspace = game:GetService("Workspace")
+local Player = Players.LocalPlayer
+local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+
+-- [1. FAST ATTACK SIÊU TỐC QUA MODULE NET BYPASS]
+task.spawn(function()
+    while task.wait(0.001) do
+        if getgenv().Kaitun_HoangHub and getgenv().FastAttack then
+            pcall(function()
+                local Char = Player.Character
+                if Char then
+                    local Tool = Char:FindFirstChildOfClass("Tool")
+                    if Tool and (Tool.ToolTip == "Melee" or Tool.ToolTip == "Sword") then
+                        local Net = ReplicatedStorage:FindFirstChild("Modules") and ReplicatedStorage.Modules:FindFirstChild("Net")
+                        if Net then
+                            require(Net):RemoteEvent("RegisterHit", true)
+                            ReplicatedStorage.Modules.Net["RE/RegisterAttack"]:FireServer()
+                        end
+                        VirtualUser:CaptureController()
+                        VirtualUser:ClickButton1(Vector2.new(850, 160))
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- [2. HỆ THỐNG GOM QUÁI & PHÌNH TO HITBOX]
+task.spawn(function()
+    while task.wait(0.1) do
+        if getgenv().Kaitun_HoangHub and getgenv().BringMob and getgenv().TargetMonster ~= "" then
+            pcall(function()
+                local HRP = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+                if HRP then
+                    for _, mob in pairs(Workspace.Enemies:GetChildren()) do
+                        if mob.Name == getgenv().TargetMonster and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+                            local MobHRP = mob:FindFirstChild("HumanoidRootPart")
+                            if MobHRP and (HRP.Position - MobHRP.Position).Magnitude < 350 then
+                                -- Gom ra trước mặt 4 studs
+                                MobHRP.CFrame = HRP.CFrame * CFrame.new(0, 0, -4)
+                                -- Phình to hitbox max cỡ
+                                MobHRP.Size = Vector3.new(40, 40, 40)
+                                MobHRP.Transparency = 0.8
+                                MobHRP.CanCollide = false
+                                -- Phá hủy hành vi quái
+                                mob.Humanoid.WalkSpeed = 0
+                                mob.Humanoid.JumpPower = 0
+                                if mob.Humanoid:FindFirstChild("Animator") then
+                                    mob.Humanoid.Animator:Destroy()
+                                end
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- [3. TỰ ĐỘNG BẬT HAKI VŨ TRANG VÀ QUAN SÁT]
+task.spawn(function()
+    while task.wait(2) do
+        if getgenv().Kaitun_HoangHub and getgenv().AutoHaki then
+            pcall(function()
+                local Char = Player.Character
+                if Char then
+                    -- Buso Haki (Vũ Trang)
+                    if not Char:FindFirstChild("HasBuso") then
+                        CommF:InvokeServer("Buso")
+                    end
+                    -- Ken Haki (Quan Sát - Tránh đòn)
+                    local PlayerGui = Player:FindFirstChild("PlayerGui")
+                    if PlayerGui and PlayerGui:FindFirstChild("ScreenGui") and PlayerGui.ScreenGui:FindFirstChild("ImageLabel") then
+                        -- Giả lập bật Ken nếu chưa bật
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- [4. XÓA BỎ VÙNG AN TOÀN (SAFE ZONE) ĐỂ GOM QUÁI KHÔNG BỊ LỖI MÁU]
+task.spawn(function()
+    while task.wait(5) do
+        if getgenv().Kaitun_HoangHub then
+            pcall(function()
+                for _, zone in pairs(Workspace:GetChildren()) do
+                    if zone.Name == "SafeZone" or zone.Name == "Safe Zone" then
+                        zone:Destroy()
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- [5. TỰ ĐỘNG NHẬP TOÀN BỘ CODE X2 KINH NGHIỆM WIKIPEDIA]
+task.spawn(function()
+    local Codes = {
+        "Sub2Fer999", "Enyu_is_Pro", "Magicbus", "JCWK", 
+        "Starcodeheo", "Bluxxy", "fudd10_v2", "SUB2GAMERROBOT_EXP1",
+        "KITT_RESET", "Sub2UncleKizaru", "Sub2OfficialNoobie"
+    }
+    for _, code in pairs(Codes) do
+        pcall(function() CommF:InvokeServer("RedeemCode", code) end)
+        task.wait(5)
+    end
+end)
+
+print("[HoangHub] Hoàn tất tải phần 3.")
+-- =====================================================================
+          -- =====================================================================
+-- HOÀNG HUB VIP V10 - PHẦN 4: REDZ FAKE SOURCE - WIKI DATABASE (SEA 1)
+-- =====================================================================
+
+-- Khởi tạo Database khổng lồ theo chuẩn Redz Source
+getgenv().RedzQuestDatabase = {}
+
+local function AddQuestData(dataBlock)
+    table.insert(getgenv().RedzQuestDatabase, dataBlock)
+end
+
+-- [CẤP ĐỘ 1-14] Khu vực: Đảo Tân Thủ (Starter Island)
+AddQuestData({
+    MinLevel = 1,
+    MaxLevel = 14,
+    TargetName = "Bandit",
+    QuestId = "BanditQuest1",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(1059, 16, 1549),
+    MobPosition = CFrame.new(1148, 16, 1610)
+})
+
+-- [CẤP ĐỘ 15-29] Khu vực: Đảo Khỉ (Jungle) - Bãi 1
+AddQuestData({
+    MinLevel = 15,
+    MaxLevel = 29,
+    TargetName = "Monkey",
+    QuestId = "JungleQuest",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(-1599, 36, 153),
+    MobPosition = CFrame.new(-1496, 23, 35)
+})
+
+-- [CẤP ĐỘ 30-59] Khu vực: Đảo Khỉ (Jungle) - Bãi 2
+AddQuestData({
+    MinLevel = 30,
+    MaxLevel = 59,
+    TargetName = "Gorilla",
+    QuestId = "JungleQuest",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(-1599, 36, 153),
+    MobPosition = CFrame.new(-1232, 7, -500)
+})
+
+-- [CẤP ĐỘ 60-89] Khu vực: Làng Hải Tặc (Pirate Village)
+AddQuestData({
+    MinLevel = 60,
+    MaxLevel = 89,
+    TargetName = "Pirate",
+    QuestId = "BuggyQuest1",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(-1140, 5, 3828),
+    MobPosition = CFrame.new(-1204, 5, 3915)
+})
+
+-- [CẤP ĐỘ 90-119] Khu vực: Đảo Sa Mạc (Desert)
+AddQuestData({
+    MinLevel = 90,
+    MaxLevel = 119,
+    TargetName = "Desert Bandit",
+    QuestId = "DesertQuest",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(896, 7, 4390),
+    MobPosition = CFrame.new(990, 7, 4425)
+})
+
+-- [CẤP ĐỘ 120-149] Khu vực: Đảo Tuyết (Frozen Village)
+AddQuestData({
+    MinLevel = 120,
+    MaxLevel = 149,
+    TargetName = "Snow Bandit",
+    QuestId = "SnowQuest",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(1385, 87, -1298),
+    MobPosition = CFrame.new(1289, 106, -1320)
+})
+
+-- [CẤP ĐỘ 150-174] Khu vực: Pháo Đài Hải Quân (Marine Fortress)
+AddQuestData({
+    MinLevel = 150,
+    MaxLevel = 174,
+    TargetName = "Chief Petty Officer",
+    QuestId = "MarineQuest2",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(-5039, 28, 4324),
+    MobPosition = CFrame.new(-4840, 22, 4235)
+})
+
+-- [CẤP ĐỘ 175-189] Khu vực: Đảo Trên Trời (Skylands - Lower)
+AddQuestData({
+    MinLevel = 175,
+    MaxLevel = 189,
+    TargetName = "Sky Bandit",
+    QuestId = "SkyQuest",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(-4843, 718, -2620),
+    MobPosition = CFrame.new(-4981, 278, -2830)
+})
+
+-- [CẤP ĐỘ 190-209] Khu vực: Ngục Tù (Prison) - Tù Nhân Thường
+AddQuestData({
+    MinLevel = 190,
+    MaxLevel = 209,
+    TargetName = "Prisoner",
+    QuestId = "PrisonQuest",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(5308, 1, 485),
+    MobPosition = CFrame.new(5395, 2, 532)
+})
+
+-- [CẤP ĐỘ 210-249] Khu vực: Ngục Tù (Prison) - Tù Nhân Nguy Hiểm
+AddQuestData({
+    MinLevel = 210,
+    MaxLevel = 249,
+    TargetName = "Dangerous Prisoner",
+    QuestId = "PrisonQuest",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(5308, 1, 485),
+    MobPosition = CFrame.new(5545, 2, 735)
+})
+
+-- [CẤP ĐỘ 250-299] Khu vực: Đấu Trường (Colosseum)
+AddQuestData({
+    MinLevel = 250,
+    MaxLevel = 299,
+    TargetName = "Toga Warrior",
+    QuestId = "ColosseumQuest",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(-1580, 7, -2982),
+    MobPosition = CFrame.new(-1496, 49, -2828)
+})
+
+-- [CẤP ĐỘ 300-324] Khu vực: Đảo Núi Lửa (Magma Village) - Ninja
+AddQuestData({
+    MinLevel = 300,
+    MaxLevel = 324,
+    TargetName = "Magma Ninja",
+    QuestId = "MagmaQuest",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(-5315, 12, 8515),
+    MobPosition = CFrame.new(-5403, 15, 8432)
+})
+
+-- [CẤP ĐỘ 325-374] Khu vực: Đảo Núi Lửa (Magma Village) - Pirate
+AddQuestData({
+    MinLevel = 325,
+    MaxLevel = 374,
+    TargetName = "Magma Pirate",
+    QuestId = "MagmaQuest",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(-5315, 12, 8515),
+    MobPosition = CFrame.new(-5820, 24, 8815)
+})
+
+-- [CẤP ĐỘ 375-399] Khu vực: Đảo Người Cá (Underwater City) - Warrior
+AddQuestData({
+    MinLevel = 375,
+    MaxLevel = 399,
+    TargetName = "Fishman Warrior",
+    QuestId = "FishmanQuest",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(61122, 18, 1569),
+    MobPosition = CFrame.new(60930, 22, 1425)
+})
+
+-- [CẤP ĐỘ 400-449] Khu vực: Đảo Người Cá (Underwater City) - Commando
+AddQuestData({
+    MinLevel = 400,
+    MaxLevel = 449,
+    TargetName = "Fishman Commando",
+    QuestId = "FishmanQuest",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(61122, 18, 1569),
+    MobPosition = CFrame.new(61840, 25, 1230)
+})
+
+-- [CẤP ĐỘ 450-474] Khu vực: Đảo Trên Trời (Skylands - Upper)
+AddQuestData({
+    MinLevel = 450,
+    MaxLevel = 474,
+    TargetName = "God's Guard",
+    QuestId = "SkyExp1Quest",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(-4721, 844, -1950),
+    MobPosition = CFrame.new(-4635, 850, -1725)
+})
+
+-- [CẤP ĐỘ 475-524] Khu vực: Đảo Trên Trời (Skylands - Upper) - Shanda
+AddQuestData({
+    MinLevel = 475,
+    MaxLevel = 524,
+    TargetName = "Shanda",
+    QuestId = "SkyExp1Quest",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(-4721, 844, -1950),
+    MobPosition = CFrame.new(-4230, 855, -2040)
+})
+
+-- [CẤP ĐỘ 525-549] Khu vực: Đảo Trên Trời (Skylands - High)
+AddQuestData({
+    MinLevel = 525,
+    MaxLevel = 549,
+    TargetName = "Royal Squad",
+    QuestId = "SkyExp2Quest",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(-7905, 5545, -380),
+    MobPosition = CFrame.new(-7660, 5600, -425)
+})
+
+-- [CẤP ĐỘ 550-624] Khu vực: Đảo Trên Trời (Skylands - High)
+AddQuestData({
+    MinLevel = 550,
+    MaxLevel = 624,
+    TargetName = "Royal Soldier",
+    QuestId = "SkyExp2Quest",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(-7905, 5545, -380),
+    MobPosition = CFrame.new(-7800, 5600, -225)
+})
+
+-- [CẤP ĐỘ 625-700] Khu vực: Thành Phố Nước (Fountain City)
+AddQuestData({
+    MinLevel = 625,
+    MaxLevel = 700,
+    TargetName = "Galley Pirate",
+    QuestId = "FountainQuest",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(5259, 38, 4050),
+    MobPosition = CFrame.new(5427, 43, 3995)
+})
+
+print("[HoangHub] Tải xong Database Sea 1 (1-700).")
+-- =====================================================================
+      -- =====================================================================
+-- HOÀNG HUB VIP V10 - PHẦN 5: REDZ FAKE SOURCE - WIKI DATABASE (SEA 2)
+-- =====================================================================
+
+-- [CẤP ĐỘ 700-724] Khu vực: Vương Quốc Hoa Hồng (Kingdom of Rose) - Area 1
+AddQuestData({
+    MinLevel = 700,
+    MaxLevel = 724,
+    TargetName = "Raider",
+    QuestId = "Area1Quest",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(-425, 73, 1835),
+    MobPosition = CFrame.new(-745, 75, 2350)
+})
+
+-- [CẤP ĐỘ 725-774] Khu vực: Vương Quốc Hoa Hồng (Kingdom of Rose) - Area 1
+AddQuestData({
+    MinLevel = 725,
+    MaxLevel = 774,
+    TargetName = "Mercenary",
+    QuestId = "Area1Quest",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(-425, 73, 1835),
+    MobPosition = CFrame.new(-850, 85, 1450)
+})
+
+-- [CẤP ĐỘ 775-799] Khu vực: Vương Quốc Hoa Hồng (Kingdom of Rose) - Area 2
+AddQuestData({
+    MinLevel = 775,
+    MaxLevel = 799,
+    TargetName = "Swan Pirate",
+    QuestId = "Area2Quest",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(634, 73, 918),
+    MobPosition = CFrame.new(880, 120, 1200)
+})
+
+-- [CẤP ĐỘ 800-874] Khu vực: Nhà Máy (Factory Area)
+AddQuestData({
+    MinLevel = 800,
+    MaxLevel = 874,
+    TargetName = "Factory Staff",
+    QuestId = "Area2Quest",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(634, 73, 918),
+    MobPosition = CFrame.new(280, 73, -150)
+})
+
+-- [CẤP ĐỘ 875-899] Khu vực: Quần Đảo Thực Vật (Green Zone)
+AddQuestData({
+    MinLevel = 875,
+    MaxLevel = 899,
+    TargetName = "Marine Lieutenant",
+    QuestId = "MarineQuest3",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(-2443, 73, -3318),
+    MobPosition = CFrame.new(-2810, 73, -3050)
+})
+
+-- [CẤP ĐỘ 900-949] Khu vực: Quần Đảo Thực Vật (Green Zone) - Captain
+AddQuestData({
+    MinLevel = 900,
+    MaxLevel = 949,
+    TargetName = "Marine Captain",
+    QuestId = "MarineQuest3",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(-2443, 73, -3318),
+    MobPosition = CFrame.new(-1850, 73, -3350)
+})
+
+-- [CẤP ĐỘ 950-974] Khu vực: Nghĩa Trang (Graveyard)
+AddQuestData({
+    MinLevel = 950,
+    MaxLevel = 974,
+    TargetName = "Zombie",
+    QuestId = "ZombieQuest",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(-5495, 48, -794),
+    MobPosition = CFrame.new(-5650, 50, -680)
+})
+
+-- [CẤP ĐỘ 975-999] Khu vực: Nghĩa Trang (Graveyard) - Vampire
+AddQuestData({
+    MinLevel = 975,
+    MaxLevel = 999,
+    TargetName = "Vampire",
+    QuestId = "ZombieQuest",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(-5495, 48, -794),
+    MobPosition = CFrame.new(-6050, 50, -1350)
+})
+
+-- [CẤP ĐỘ 1000-1049] Khu vực: Núi Tuyết (Snow Mountain)
+AddQuestData({
+    MinLevel = 1000,
+    MaxLevel = 1049,
+    TargetName = "Snow Trooper",
+    QuestId = "SnowMountainQuest",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(605, 401, -5368),
+    MobPosition = CFrame.new(480, 401, -5450)
+})
+
+-- [CẤP ĐỘ 1050-1099] Khu vực: Núi Tuyết (Snow Mountain) - Winter Warrior
+AddQuestData({
+    MinLevel = 1050,
+    MaxLevel = 1099,
+    TargetName = "Winter Warrior",
+    QuestId = "SnowMountainQuest",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(605, 401, -5368),
+    MobPosition = CFrame.new(1250, 420, -5250)
+})
+
+-- [CẤP ĐỘ 1100-1124] Khu vực: Đảo Lạnh Lẽo & Nóng Bỏng (Hot and Cold) - Băng
+AddQuestData({
+    MinLevel = 1100,
+    MaxLevel = 1124,
+    TargetName = "Lab Subordinate",
+    QuestId = "IceSideQuest",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(-5344, 15, -4296),
+    MobPosition = CFrame.new(-5750, 15, -4150)
+})
+
+-- [CẤP ĐỘ 1125-1174] Khu vực: Đảo Lạnh Lẽo & Nóng Bỏng (Hot and Cold) - Sừng
+AddQuestData({
+    MinLevel = 1125,
+    MaxLevel = 1174,
+    TargetName = "Horned Warrior",
+    QuestId = "IceSideQuest",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(-5344, 15, -4296),
+    MobPosition = CFrame.new(-6250, 18, -4350)
+})
+
+-- [CẤP ĐỘ 1175-1199] Khu vực: Đảo Lạnh Lẽo & Nóng Bỏng (Hot and Cold) - Lửa
+AddQuestData({
+    MinLevel = 1175,
+    MaxLevel = 1199,
+    TargetName = "Magma Ninja",
+    QuestId = "FireSideQuest",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(-5430, 15, -5295),
+    MobPosition = CFrame.new(-5450, 15, -5550)
+})
+
+-- [CẤP ĐỘ 1200-1249] Khu vực: Đảo Lạnh Lẽo & Nóng Bỏng (Hot and Cold) - Lửa 2
+AddQuestData({
+    MinLevel = 1200,
+    MaxLevel = 1249,
+    TargetName = "Magma Pirate",
+    QuestId = "FireSideQuest",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(-5430, 15, -5295),
+    MobPosition = CFrame.new(-5200, 15, -5850)
+})
+
+-- [CẤP ĐỘ 1250-1274] Khu vực: Tàu Của Cursed Captain (Cursed Ship)
+AddQuestData({
+    MinLevel = 1250,
+    MaxLevel = 1274,
+    TargetName = "Ship Deckhand",
+    QuestId = "MarineShipQuest",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(924, 126, 32852),
+    MobPosition = CFrame.new(1150, 126, 33000)
+})
+
+-- [CẤP ĐỘ 1275-1349] Khu vực: Tàu Của Cursed Captain (Cursed Ship)
+AddQuestData({
+    MinLevel = 1275,
+    MaxLevel = 1349,
+    TargetName = "Ship Engineer",
+    QuestId = "MarineShipQuest",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(924, 126, 32852),
+    MobPosition = CFrame.new(950, 45, 32800)
+})
+
+-- [CẤP ĐỘ 1350-1424] Khu vực: Lâu Đài Trên Tuyết (Ice Castle)
+AddQuestData({
+    MinLevel = 1350,
+    MaxLevel = 1424,
+    TargetName = "Arctic Warrior",
+    QuestId = "WaterQuest",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(5668, 28, -6550),
+    MobPosition = CFrame.new(6050, 28, -6400)
+})
+
+-- [CẤP ĐỘ 1425-1449] Khu vực: Đảo Lãng Quên (Forgotten Island)
+AddQuestData({
+    MinLevel = 1425,
+    MaxLevel = 1449,
+    TargetName = "Sea Soldier",
+    QuestId = "WaterQuest",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(-3050, 238, -10140),
+    MobPosition = CFrame.new(-2850, 240, -10350)
+})
+
+-- [CẤP ĐỘ 1450-1499] Khu vực: Đảo Lãng Quên (Forgotten Island) - Water Fighter
+AddQuestData({
+    MinLevel = 1450,
+    MaxLevel = 1499,
+    TargetName = "Water Fighter",
+    QuestId = "ForgottenQuest",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(-3050, 238, -10140),
+    MobPosition = CFrame.new(-3350, 240, -10500)
+})
+
+print("[HoangHub] Tải xong Database Sea 2 (700-1500).")
+-- =====================================================================
+      -- =====================================================================
+-- HOÀNG HUB VIP V10 - PHẦN 6: REDZ FAKE SOURCE - WIKI DATABASE (SEA 3 - P1)
+-- =====================================================================
+
+-- [CẤP ĐỘ 1500-1524] Khu vực: Cảng Biển (Port Town)
+AddQuestData({
+    MinLevel = 1500,
+    MaxLevel = 1524,
+    TargetName = "Pirate Millionaire",
+    QuestId = "PiratePortQuest",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(-290, 44, 5526),
+    MobPosition = CFrame.new(-415, 75, 5500)
+})
+
+-- [CẤP ĐỘ 1525-1574] Khu vực: Cảng Biển (Port Town)
+AddQuestData({
+    MinLevel = 1525,
+    MaxLevel = 1574,
+    TargetName = "Pistol Billionaire",
+    QuestId = "PiratePortQuest",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(-290, 44, 5526),
+    MobPosition = CFrame.new(-450, 80, 5800)
+})
+
+-- [CẤP ĐỘ 1575-1599] Khu vực: Đảo Rùa (Great Tree / Hydra)
+AddQuestData({
+    MinLevel = 1575,
+    MaxLevel = 1599,
+    TargetName = "Dragon Crew Warrior",
+    QuestId = "AmazonQuest",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(5700, 1018, -145),
+    MobPosition = CFrame.new(6350, 1020, -150)
+})
+
+-- [CẤP ĐỘ 1600-1624] Khu vực: Đảo Rùa (Great Tree / Hydra)
+AddQuestData({
+    MinLevel = 1600,
+    MaxLevel = 1624,
+    TargetName = "Dragon Crew Archer",
+    QuestId = "AmazonQuest",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(5700, 1018, -145),
+    MobPosition = CFrame.new(6550, 1020, 150)
+})
+
+-- [CẤP ĐỘ 1625-1649] Khu vực: Đảo Rùa Đuôi (Hydra Island)
+AddQuestData({
+    MinLevel = 1625,
+    MaxLevel = 1649,
+    TargetName = "Female Islander",
+    QuestId = "AmazonQuest2",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(5450, 1020, 600),
+    MobPosition = CFrame.new(5250, 1020, 850)
+})
+
+-- [CẤP ĐỘ 1650-1699] Khu vực: Đảo Rùa Đuôi (Hydra Island)
+AddQuestData({
+    MinLevel = 1650,
+    MaxLevel = 1699,
+    TargetName = "Giant Islander",
+    QuestId = "AmazonQuest2",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(5450, 1020, 600),
+    MobPosition = CFrame.new(4800, 1020, 750)
+})
+
+-- [CẤP ĐỘ 1700-1724] Khu vực: Cây Cổ Thụ (Great Tree)
+AddQuestData({
+    MinLevel = 1700,
+    MaxLevel = 1724,
+    TargetName = "Marine Commodore",
+    QuestId = "MarineTreeQuest",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(2450, 75, -2050),
+    MobPosition = CFrame.new(2800, 75, -2150)
+})
+
+-- [CẤP ĐỘ 1725-1774] Khu vực: Cây Cổ Thụ (Great Tree)
+AddQuestData({
+    MinLevel = 1725,
+    MaxLevel = 1774,
+    TargetName = "Marine Rear Admiral",
+    QuestId = "MarineTreeQuest",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(2450, 75, -2050),
+    MobPosition = CFrame.new(3300, 75, -2500)
+})
+
+-- [CẤP ĐỘ 1775-1799] Khu vực: Đảo Rùa Bay (Floating Turtle) - Rừng Dưới
+AddQuestData({
+    MinLevel = 1775,
+    MaxLevel = 1799,
+    TargetName = "Fishman Raider",
+    QuestId = "DeepForestQuest",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(-10500, 332, -8800),
+    MobPosition = CFrame.new(-10400, 332, -8500)
+})
+
+-- [CẤP ĐỘ 1800-1849] Khu vực: Đảo Rùa Bay (Floating Turtle) - Rừng Dưới
+AddQuestData({
+    MinLevel = 1800,
+    MaxLevel = 1849,
+    TargetName = "Fishman Captain",
+    QuestId = "DeepForestQuest",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(-10500, 332, -8800),
+    MobPosition = CFrame.new(-10700, 332, -8400)
+})
+
+-- [CẤP ĐỘ 1850-1874] Khu vực: Đảo Rùa Bay (Floating Turtle) - Khu Giữa
+AddQuestData({
+    MinLevel = 1850,
+    MaxLevel = 1874,
+    TargetName = "Forest Pirate",
+    QuestId = "DeepForestQuest2",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(-13200, 332, -7600),
+    MobPosition = CFrame.new(-13400, 332, -7800)
+})
+
+-- [CẤP ĐỘ 1875-1924] Khu vực: Đảo Rùa Bay (Floating Turtle) - Khu Giữa
+AddQuestData({
+    MinLevel = 1875,
+    MaxLevel = 1924,
+    TargetName = "Mythological Pirate",
+    QuestId = "DeepForestQuest2",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(-13200, 332, -7600),
+    MobPosition = CFrame.new(-13600, 332, -8100)
+})
+
+-- [CẤP ĐỘ 1925-1949] Khu vực: Đảo Rùa Bay (Floating Turtle) - Trại Rừng
+AddQuestData({
+    MinLevel = 1925,
+    MaxLevel = 1949,
+    TargetName = "Jungle Pirate",
+    QuestId = "DeepForestQuest3",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(-12600, 332, -9900),
+    MobPosition = CFrame.new(-12200, 332, -10400)
+})
+
+-- [CẤP ĐỘ 1950-1999] Khu vực: Đảo Rùa Bay (Floating Turtle) - Lính Ngự Lâm
+AddQuestData({
+    MinLevel = 1950,
+    MaxLevel = 1999,
+    TargetName = "Musketeer Pirate",
+    QuestId = "DeepForestQuest3",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(-12600, 332, -9900),
+    MobPosition = CFrame.new(-13300, 332, -9800)
+})
+
+-- [CẤP ĐỘ 2000-2024] Khu vực: Vùng Đất Bánh Đậu Phộng (Peanut Land)
+AddQuestData({
+    MinLevel = 2000,
+    MaxLevel = 2024,
+    TargetName = "Peanut Scout",
+    QuestId = "PeanutQuest",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(-2100, 38, -10200),
+    MobPosition = CFrame.new(-2000, 38, -10400)
+})
+
+-- [CẤP ĐỘ 2025-2049] Khu vực: Vùng Đất Bánh Đậu Phộng (Peanut Land)
+AddQuestData({
+    MinLevel = 2025,
+    MaxLevel = 2049,
+    TargetName = "Peanut President",
+    QuestId = "PeanutQuest",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(-2100, 38, -10200),
+    MobPosition = CFrame.new(-2300, 38, -10600)
+})
+
+-- [CẤP ĐỘ 2050-2074] Khu vực: Đảo Kem (Ice Cream Island)
+AddQuestData({
+    MinLevel = 2050,
+    MaxLevel = 2074,
+    TargetName = "Ice Cream Chef",
+    QuestId = "IceCreamQuest",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(-820, 66, -10950),
+    MobPosition = CFrame.new(-700, 66, -11100)
+})
+
+-- [CẤP ĐỘ 2075-2099] Khu vực: Đảo Kem (Ice Cream Island)
+AddQuestData({
+    MinLevel = 2075,
+    MaxLevel = 2099,
+    TargetName = "Ice Cream Commander",
+    QuestId = "IceCreamQuest",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(-820, 66, -10950),
+    MobPosition = CFrame.new(-950, 66, -11300)
+})
+
+-- [CẤP ĐỘ 2100-2124] Khu vực: Đảo Bánh Ngọt (Cake Island)
+AddQuestData({
+    MinLevel = 2100,
+    MaxLevel = 2124,
+    TargetName = "Cookie Crafter",
+    QuestId = "CakeQuest1",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(-2400, 38, -12100),
+    MobPosition = CFrame.new(-2200, 38, -12300)
+})
+
+-- [CẤP ĐỘ 2125-2149] Khu vực: Đảo Bánh Ngọt (Cake Island)
+AddQuestData({
+    MinLevel = 2125,
+    MaxLevel = 2149,
+    TargetName = "Cake Guard",
+    QuestId = "CakeQuest1",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(-2400, 38, -12100),
+    MobPosition = CFrame.new(-2600, 38, -12400)
+})
+
+-- [CẤP ĐỘ 2150-2174] Khu vực: Đảo Bánh Ngọt (Cake Island) - Baking Staff
+AddQuestData({
+    MinLevel = 2150,
+    MaxLevel = 2174,
+    TargetName = "Baking Staff",
+    QuestId = "CakeQuest2",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(-1900, 38, -12800),
+    MobPosition = CFrame.new(-1700, 38, -13000)
+})
+
+print("[HoangHub] Tải xong Database Sea 3 P1 (1500-2174).")
+-- =====================================================================
+      -- =====================================================================
+-- HOÀNG HUB VIP V10 - PHẦN 7: WIKI DATABASE (END) & MAIN SERVER LOOP
+-- =====================================================================
+
+-- [CẤP ĐỘ 2175-2199] Khu vực: Đảo Bánh Ngọt (Cake Island) - Head Baker
+AddQuestData({
+    MinLevel = 2175,
+    MaxLevel = 2199,
+    TargetName = "Head Baker",
+    QuestId = "CakeQuest2",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(-1900, 38, -12800),
+    MobPosition = CFrame.new(-2100, 38, -13200)
+})
+
+-- [CẤP ĐỘ 2200-2224] Khu vực: Đảo Socola (Chocolate Island)
+AddQuestData({
+    MinLevel = 2200,
+    MaxLevel = 2224,
+    TargetName = "Cocoa Warrior",
+    QuestId = "ChocQuest1",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(200, 25, -12100),
+    MobPosition = CFrame.new(350, 25, -12300)
+})
+
+-- [CẤP ĐỘ 2225-2274] Khu vực: Đảo Socola (Chocolate Island)
+AddQuestData({
+    MinLevel = 2225,
+    MaxLevel = 2274,
+    TargetName = "Chocolate Bar Battler",
+    QuestId = "ChocQuest1",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(200, 25, -12100),
+    MobPosition = CFrame.new(100, 25, -12500)
+})
+
+-- [CẤP ĐỘ 2275-2299] Khu vực: Đảo Kẹo Ngọt (Candy Island)
+AddQuestData({
+    MinLevel = 2275,
+    MaxLevel = 2299,
+    TargetName = "Candy Rebel",
+    QuestId = "CandyQuest1",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(-1100, 15, -14300),
+    MobPosition = CFrame.new(-900, 15, -14500)
+})
+
+-- [CẤP ĐỘ 2300-2324] Khu vực: Đảo Kẹo Ngọt (Candy Island)
+AddQuestData({
+    MinLevel = 2300,
+    MaxLevel = 2324,
+    TargetName = "Candy Pirate",
+    QuestId = "CandyQuest1",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(-1100, 15, -14300),
+    MobPosition = CFrame.new(-1300, 15, -14600)
+})
+
+-- [CẤP ĐỘ 2325-2349] Khu vực: Đảo Tuyết Kẹo (Snow Candy Island)
+AddQuestData({
+    MinLevel = 2325,
+    MaxLevel = 2349,
+    TargetName = "Snow Demonic",
+    QuestId = "CandyQuest2",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(-2200, 15, -14800),
+    MobPosition = CFrame.new(-2000, 15, -15000)
+})
+
+-- [CẤP ĐỘ 2350-2399] Khu vực: Đảo Tuyết Kẹo (Snow Candy Island)
+AddQuestData({
+    MinLevel = 2350,
+    MaxLevel = 2399,
+    TargetName = "Snow Ninja",
+    QuestId = "CandyQuest2",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(-2200, 15, -14800),
+    MobPosition = CFrame.new(-2400, 15, -15200)
+})
+
+-- [CẤP ĐỘ 2400-2424] Khu vực: Đảo Đậu Phộng 2 (Peanut Island 2)
+AddQuestData({
+    MinLevel = 2400,
+    MaxLevel = 2424,
+    TargetName = "Peanut Pirate",
+    QuestId = "PeanutQuest2",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(-3000, 25, -11200),
+    MobPosition = CFrame.new(-2800, 25, -11400)
+})
+
+-- [CẤP ĐỘ 2425-2449] Khu vực: Đảo Đậu Phộng 2 (Peanut Island 2)
+AddQuestData({
+    MinLevel = 2425,
+    MaxLevel = 2449,
+    TargetName = "Candy Corsair",
+    QuestId = "PeanutQuest2",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(-3000, 25, -11200),
+    MobPosition = CFrame.new(-3200, 25, -11500)
+})
+
+-- [CẤP ĐỘ 2450-2474] Khu vực: Đảo Tiki (Tiki Outpost)
+AddQuestData({
+    MinLevel = 2450,
+    MaxLevel = 2474,
+    TargetName = "Sun-kissed Warrior",
+    QuestId = "TikiQuest",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(-16200, 10, 150),
+    MobPosition = CFrame.new(-16400, 10, 250)
+})
+
+-- [CẤP ĐỘ 2475-2499] Khu vực: Đảo Tiki (Tiki Outpost) - Champion
+AddQuestData({
+    MinLevel = 2475,
+    MaxLevel = 2499,
+    TargetName = "Isle Champion",
+    QuestId = "TikiQuest",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(-16200, 10, 150),
+    MobPosition = CFrame.new(-16000, 10, -150)
+})
+
+-- [CẤP ĐỘ 2500-2549] Khu vực: Đảo Tiki (Tiki Outpost) - Explorer
+AddQuestData({
+    MinLevel = 2500,
+    MaxLevel = 2549,
+    TargetName = "Isle Explorer",
+    QuestId = "TikiQuest2",
+    QuestLevel = 1,
+    NPCPosition = CFrame.new(-16500, 10, -500),
+    MobPosition = CFrame.new(-16700, 10, -700)
+})
+
+-- [CẤP ĐỘ 2550-2800] Khu vực: Đảo Tiki (Tiki Outpost) - Max Level 2800
+AddQuestData({
+    MinLevel = 2550,
+    MaxLevel = 2800,
+    TargetName = "Isle Captain",
+    QuestId = "TikiQuest2",
+    QuestLevel = 2,
+    NPCPosition = CFrame.new(-16500, 10, -500),
+    MobPosition = CFrame.new(-16300, 10, -900)
+})
+
+-- [HÀM CẬP NHẬT DỮ LIỆU TỪ WIKIPEDIA REDZ SOURCE]
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Player = Players.LocalPlayer
+local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+local Workspace = game:GetService("Workspace")
+
+function UpdateQuestData()
+    local MyLvl = Player.Data.Level.Value
+    for _, db in pairs(getgenv().RedzQuestDatabase) do
+        if MyLvl >= db.MinLevel and MyLvl <= db.MaxLevel then
+            getgenv().TargetMonster = db.TargetName
+            getgenv().QuestName = db.QuestId
+            getgenv().QuestLevel = db.QuestLevel
+            getgenv().QuestNPC = db.NPCPosition
+            getgenv().MobPos = db.MobPosition
+            break
+        end
+    end
+end
+
+-- [HÀM TÌM QUÁI TỐI ƯU NHẤT]
+local function FindAliveTargetMob()
+    local BestMob = nil
+    local MinDist = math.huge
+    local HRP = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+    
+    if HRP then
+        for _, mob in pairs(Workspace.Enemies:GetChildren()) do
+            if mob.Name == getgenv().TargetMonster and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+                local MobHRP = mob:FindFirstChild("HumanoidRootPart")
+                if MobHRP then
+                    local dist = (HRP.Position - MobHRP.Position).Magnitude
+                    if dist < MinDist then
+                        MinDist = dist
+                        BestMob = mob
+                    end
+                end
+            end
+        end
+    end
+    return BestMob
+end
+
+-- [VÒNG LẶP AUTO FARM ĐỈNH CAO XUYÊN LỖI UI]
+task.spawn(function()
+    while task.wait() do
+        if getgenv().Kaitun_HoangHub and getgenv().AutoFarm then
+            pcall(function()
+                UpdateQuestData()
+                
+                if getgenv().UI_Status then
+                    getgenv().UI_Status.Text = "Cấp độ hiện tại: " .. Player.Data.Level.Value
+                end
+                
+                local QuestUI = Player.PlayerGui:FindFirstChild("Main") and Player.PlayerGui.Main:FindFirstChild("Quest")
+                local CheckQuest = false
+                
+                if QuestUI and QuestUI.Visible then
+                    for _, label in pairs(QuestUI:GetDescendants()) do
+                        if label:IsA("TextLabel") and string.find(label.Text, getgenv().TargetMonster) then
+                            CheckQuest = true
+                            break
+                        end
+                    end
+                end
+                
+                if not CheckQuest then
+                    if getgenv().UI_Quest then getgenv().UI_Quest.Text = "Đang đi nhận: " .. getgenv().TargetMonster end
+                    
+                    if QuestUI and QuestUI.Visible then
+                        CommF:InvokeServer("AbandonQuest")
+                        task.wait(0.3)
+                    end
+                    
+                    local HRP = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+                    if HRP then
+                        if (HRP.Position - getgenv().QuestNPC.Position).Magnitude > 15 then
+                            toTarget(getgenv().QuestNPC)
+                        else
+                            CommF:InvokeServer("StartQuest", getgenv().QuestName, getgenv().QuestLevel)
+                            task.wait(0.5)
+                        end
+                    end
+                else
+                    if getgenv().UI_Quest then getgenv().UI_Quest.Text = "Đang chém: " .. getgenv().TargetMonster end
+                    
+                    local AliveMob = FindAliveTargetMob()
+                    if AliveMob and AliveMob:FindFirstChild("HumanoidRootPart") then
+                        toTarget(AliveMob.HumanoidRootPart.CFrame * CFrame.new(0, 8, 0))
+                    else
+                        toTarget(getgenv().MobPos * CFrame.new(0, 20, 0))
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+print("[HoangHub] KÍCH HOẠT THÀNH CÔNG REDZ WIKIPEDIA V10 FULL 1-2800!")
+-- =====================================================================
+                      
